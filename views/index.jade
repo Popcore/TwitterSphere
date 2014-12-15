@@ -1,0 +1,70 @@
+doctype html5
+
+html(lang="eng")
+	
+	head
+		title TwitterSphere
+		link(rel="stylesheet", href="css/style.css")
+
+	body
+
+		script(type="x-shader/x-vertex" id="vertexShader").
+			uniform mat4 u_normalMatrix;
+			uniform vec3 lightDir;
+			uniform float cameraPosX;
+			uniform float cameraPosY;
+			uniform float cameraPosZ;
+			varying vec3 newPosition;
+			attribute float displacement;
+			varying vec3 vNormal;
+			varying float v_Dot;
+			varying vec3 vLighting;
+   
+			void main() {
+				vec3 light = normalize(lightDir);
+				vec3 newPosition = position + normal * vec3(displacement);
+
+				// therr provides normal value
+				vNormal = normal;
+
+				gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+
+				highp vec3 ambientLight = vec3(0.6, 0.6, 0.6);
+				highp vec3 directionalLightColor = vec3(0.5, 0.5, 0.75);
+				highp vec3 directionalVector = vec3(cameraPosX, cameraPosY, cameraPosZ);
+
+				vec4 transNormal = u_normalMatrix * vec4(vNormal, 1);
+
+				v_Dot = max(0.0, dot(vNormal, directionalVector));
+
+				vLighting = ambientLight + (directionalLightColor * v_Dot);
+
+			}
+
+		script(type="x-shader/x-vertex" id="fragmentShader").
+			varying float v_Dot;
+			varying vec3 vNormal;
+
+			// lights
+			varying highp vec3 vLighting;
+
+			void main() {
+				vec4 color = vec4(0.2, 0.2, 0.2, 1);
+
+				float dProdb = max(0.5, v_Dot);
+
+				gl_FragColor = vec4(color.rgb * vLighting, 1);
+			}
+
+		header
+			h1 Hello Fuck
+
+		div
+		#container
+
+		footer
+			script(src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js")
+			script(src="/socket.io/socket.io.js")
+			script(src="/js/libraries/three.js" id="vertexShader")
+			script(src="/js/libraries/trackball.js")
+			script(src="/js/main.js")

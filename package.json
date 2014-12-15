@@ -1,0 +1,23 @@
+{
+  "name": "twittersphere",
+  "version": "0.0.1",
+  "description" : "A twitter mood/tags visualizer",
+  "author" : "Pop/C",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "4.10.2",
+    "jade": "1.7.0",
+    "mongoose": "3.8.19",
+    "twitter": "*",
+    "socket.io": "1.2.1",
+    "python-shell" : "0.0.3"
+  },
+  "repository" : {
+    "type" : "git",
+    "url" : ""
+  },
+  "license" : "MIT"
+}
