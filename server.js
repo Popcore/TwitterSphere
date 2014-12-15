@@ -3,7 +3,7 @@ var express 		= require('express'),
 		path 				= require('path'),
 		twitter 		= require('twitter'),
 		PythonShell = require('python-shell'),
-		socket 			= require('socket.io');
+		io 					= require('socket.io');
 
 // python settings
 var pySettings = {
@@ -15,7 +15,6 @@ var pySettings = {
 
 var app = express(),
 		server = http.Server(app);
-
 
 // app settings
 app.set('port', process.env.PORT || 8006);
@@ -31,8 +30,8 @@ server.listen(app.get('port'), function() {
 	console.log('Server running @ http://127.0.0.1:%d', app.get('port'));
 });
 
-// socket IO
-socket.listen(server);
+// socket io
+io.listen(server);
 
 // talk to twitter
 var credentials = require('./credentials');
@@ -44,6 +43,10 @@ var t = new twitter({
 });
 
 // 1A. entry point => search
+io.on('query-init', function() {
+	console.log('hello');
+})
+
 t.search('sneakers -RT', { 'count' : 2, 'result_type' : 'recent' }, function(data) {
 
 	//console.log(data['statuses']);
