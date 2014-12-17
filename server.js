@@ -44,51 +44,48 @@ var t = new twitter({
 io.on('connection', function(socket) {
 	console.log('io socket open');
 	socket.on('query-init', function() {
-		console.log('hello');
+
+		t.search('sneakers -RT', { 'count' : 20, 'result_type' : 'recent' }, function(data) {
+
+			var dataArray = [];
+			pyScript = new PythonShell('tweet_analysis.py', pySettings);
+
+			// pass data to script
+			pyScript.send(data['statuses']);
+
+			// handle response
+			pyScript.on('message', function(message) {
+				// response from python script
+				var tweetData = {}
+				for( var i in message ) {
+					tweetData[i] = message[i];
+				}
+
+				dataArray.push(tweetData);
+				return dataArray;
+			});
+
+			// end stream and exit process
+			pyScript.end(function(err) {
+
+				if(err) { console.log(err); }
+
+				for (var j = 0; j < dataArray.length; j++) {
+					for (var k in dataArray[j]) {
+						console.log('key: ' + k + ' | val: ' + dataArray[j][k]);
+
+						// send data to client
+						socket.emit('query-init-response', dataArray[j][k])
+
+					}
+					console.log('========================================');
+				}
+			});
+		});
 	});
 });
 
 
-t.search('sneakers -RT', { 'count' : 2, 'result_type' : 'recent' }, function(data) {
-
-	//console.log(data['statuses']);
-	var dataArray = [];
-	
-	pyScript = new PythonShell('tweet_analysis.py', pySettings);
-
-	// pass data to script
-	pyScript.send(data['statuses']);
-
-	// handle response
-	pyScript.on('message', function(message) {
-		// response from python script
-		var tweetData = {}
-
-		for( var i in message ) {
-			tweetData[i] = message[i];
-		}
-
-		dataArray.push(tweetData);
-
-		return dataArray;
-		
-	});
-
-	// end stream and exit process
-	pyScript.end(function(err) {
-
-		if(err) { console.log(err); }
-
-		for (var j = 0; j < dataArray.length; j++) {
-			for (var k in dataArray[j]) {
-				console.log('key: ' + k + ' | val: ' + dataArray[j][k]);
-			}
-			console.log('========================================');
-		}
-
-	});
-	
-});
 
 
 // 1B. entry point => search by trends/place
