@@ -2,8 +2,18 @@ var express 		= require('express'),
 		http				= require('http'),
 		path 				= require('path'),
 		twitter 		= require('twitter'),
-		PythonShell = require('python-shell'),
-		io 					= require('socket.io');
+		PythonShell = require('python-shell');
+
+// init app, server and sockets
+var app = express(),
+		server = http.Server(app),
+		io = require('socket.io')(server);
+
+// app settings
+app.set('port', process.env.PORT || 8006);
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
+app.use(express.static(path.join(__dirname, 'library')));
 
 // python settings
 var pySettings = {
@@ -13,15 +23,6 @@ var pySettings = {
   scriptPath: './venv/',
 };
 
-var app = express(),
-		server = http.Server(app);
-
-// app settings
-app.set('port', process.env.PORT || 8006);
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-app.use(express.static(path.join(__dirname, 'library')));
-
 // routes
 require('./routes.js')(app);
 
@@ -29,9 +30,6 @@ require('./routes.js')(app);
 server.listen(app.get('port'), function() {
 	console.log('Server running @ http://127.0.0.1:%d', app.get('port'));
 });
-
-// socket io
-io.listen(server);
 
 // talk to twitter
 var credentials = require('./credentials');
@@ -43,9 +41,12 @@ var t = new twitter({
 });
 
 // 1A. entry point => search
-io.on('query-init', function() {
-	console.log('hello');
-})
+io.on('connection', function(socket) {
+	console.log('io socket open');
+	socket.on('query-init', function() {
+		console.log('hello');
+	});
+});
 
 t.search('sneakers -RT', { 'count' : 2, 'result_type' : 'recent' }, function(data) {
 

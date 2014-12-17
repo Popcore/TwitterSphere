@@ -1,12 +1,14 @@
 jQuery(document).ready(function($) {
-	console.log('rocknroll');
+
+	var socket = io();
+
 	// connect to socket io
-	io.connect(window.location.origin);
+	socket.connect(window.location.origin);
 
 	// query event
-	$('input#start-query').on('click', function() {
+	$('button#start-query').on('click', function() {
 		data = 'my query data';
-		io.emit('query-init', data);
+		socket.emit('query-init', data);
 	});
 
 });
