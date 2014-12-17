@@ -1,3 +1,8 @@
+// init query response
+SOCKET.on('query-init-response', function(response) {
+	console.log(response);
+});
+
 var container, 
 		renderer,
 		scene,
@@ -25,20 +30,6 @@ function init() {
 	camera.target = new THREE.Vector3(0, 0, 0);
 
 	scene.add(camera);
-
-	// add light
-	/* ?????? ARE THESE LIGHTS DOING ANYTHING? ?????? */
-	dirLight = new THREE.DirectionalLight( 0xffffff );
-  dirLight.position.set( camera.position.x, camera.position.y, camera.position.z ).normalize();
-  scene.add( dirLight );
-
-  dirLight2 = new THREE.DirectionalLight( 0xffffff );
-  dirLight2.position.set( 10, 0, -10 ).normalize();
-  scene.add( dirLight2 );
-
-  dirLight3 = new THREE.AmbientLight( 0x404040 );;
-  dirLight3.position.set( -50, -20, 0 ).normalize();
-  scene.add( dirLight3 );
 
 	// displacement attributes
 	// the array is expected to have a one to one 

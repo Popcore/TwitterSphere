@@ -67,6 +67,8 @@ html(lang="eng")
 		footer
 			script(src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js")
 			script(src="/socket.io/socket.io.js")
+			script(type='text/javascript').
+				var SOCKET = io();
 			script(src="/js/libraries/three.js" id="vertexShader")
 			script(src="/js/libraries/trackball.js")
 			script(src="/js/main.js")
