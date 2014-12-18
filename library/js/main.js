@@ -1,7 +1,16 @@
-// init query response
+// 1.1 => init query response
+// 1.2 => populate vertices array
+var tData = ['a', 'b', 'c', 'd'];
 SOCKET.on('query-init-response', function(response) {
-	console.log(response);
+	tData.push('tweet_data');
+
+	return tData;
 });
+
+// 2.1 => render scene
+// IMPORTANT: render scene 
+//							opt 1) after tData array has been populated
+//							opt 2) render something on page load and update scene whe tData array is ready
 
 var container, 
 		renderer,
@@ -48,7 +57,6 @@ function init() {
 				'cameraPosY' 			: { type: 'f', value: 0.0 },
 				'cameraPosZ' 			: { type: 'f', value: 0.0 }
 				//'lightDir' : { type: 'v3', value:  new THREE.Vector3(50, -50, -10) }
-
 			}
 	]);
 
@@ -69,6 +77,22 @@ function init() {
 	var vertices = sphere.geometry.vertices;
 	var faces = sphere.geometry.faces;
 
+
+	/******* => MERGE TWEET ARRAY HERE <= *******/
+
+	for(var ii = 0; ii < tData.length; ii++) {
+
+		// foreach tweet push add new vertices
+		sphere.geometry.vertices.push(
+			new THREE.Vector3( -10,  10, 0 ),
+			new THREE.Vector3( -10, -10, 0 ),
+			new THREE.Vector3(  10, -10, 0 )
+		);
+
+		// and create a polygon
+		sphere.geometry.faces.push( new THREE.Face3( 0, 1, 2 ) );
+	}
+
 	// push new vertices and faces here
 	sphere.geometry.vertices.push(
 		// 1		
@@ -84,6 +108,8 @@ function init() {
 	sphere.geometry.faces.push( new THREE.Face3( 0, 1, 2 ) );
 	// 2
 	sphere.geometry.faces.push( new THREE.Face3( 3, 4, 5 ) );
+
+
 
 	var values = attributes.displacement.value;
 

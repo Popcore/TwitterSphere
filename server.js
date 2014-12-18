@@ -31,7 +31,7 @@ server.listen(app.get('port'), function() {
 	console.log('Server running @ http://127.0.0.1:%d', app.get('port'));
 });
 
-// talk to twitter
+// connect to twitter
 var credentials = require('./credentials');
 var t = new twitter({
 	consumer_key 				: credentials.consumer_key,
@@ -40,7 +40,7 @@ var t = new twitter({
 	access_token_secret : credentials.access_token_secret
 });
 
-// 1A. entry point => search
+// 1A. query entry point => search
 io.on('connection', function(socket) {
 	console.log('io socket open');
 	socket.on('query-init', function() {
@@ -73,10 +73,10 @@ io.on('connection', function(socket) {
 					for (var k in dataArray[j]) {
 						console.log('key: ' + k + ' | val: ' + dataArray[j][k]);
 
-						// send data to client
-						socket.emit('query-init-response', dataArray[j][k])
+						// single tweet properties
 
 					}
+					socket.emit('query-init-response', dataArray[j]);
 					console.log('========================================');
 				}
 			});
@@ -87,7 +87,7 @@ io.on('connection', function(socket) {
 
 
 
-// 1B. entry point => search by trends/place
+// 1B. query entry point => search by trends/place
 /**
 * TO TEST!!!
 * must be able to PASS LOCATION as argument
