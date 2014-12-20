@@ -44,7 +44,7 @@ var t = new twitter({
 io.on('connection', function(socket) {
 	console.log('io socket open');
 	socket.on('query-init', function() {
-		t.search('sneakers -RT', { 'count' : 20, 'result_type' : 'recent' }, function(data) {
+		t.search('sneakers -RT', { 'count' : 1, 'result_type' : 'recent' }, function(data) {
 
 			var dataArray = [];
 			pyScript = new PythonShell('tweet_analysis.py', pySettings);

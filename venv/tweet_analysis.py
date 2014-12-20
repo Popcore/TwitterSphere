@@ -33,9 +33,6 @@ for words, sentiment in tweetList:
 	wordsFiltered = [e.lower() for e in nltk.word_tokenize(words) if len(e) >= 3]
 	corpusOfTweet.append((wordsFiltered, sentiment))
 
-#for t in corpusOfTweet:
-	#print(t)
-
 word_features = wordFeatures(bagOfWords(corpusOfTweet))
 
 training = nltk.classify.apply_features(getFeatures, corpusOfTweet)
