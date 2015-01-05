@@ -66,6 +66,7 @@ function init() {
 	// add sphere
 	sphere = new THREE.Mesh( new THREE.IcosahedronGeometry(20, 0), shaderMaterial );
 
+	/*
 	for(var ii = 0; ii < 200; ii++) {
 		sphere.geometry.vertices.push(
 			new THREE.Vector3( -10,  10, 0 ),
@@ -78,6 +79,7 @@ function init() {
 		sphere.geometry.verticesNeedUpdate = true;
 		sphere.geometry.elementsNeedUpdate = true;
 	}
+	*/
 
 	sphere.geometry.dynamic = true;
 	
@@ -90,13 +92,23 @@ function init() {
 		values.push( Math.random() * 30 );
 	}
 
-	console.log('original vertices array => ' + sphere.geometry.vertices.length);
-
 	// upadte verices array
 	
 	shaderMaterial.needsUpdate = true;
 
 	scene.add(sphere);
+
+
+	/*
+	var q_geometry = new THREE.IcosahedronGeometry( 30, 0);
+	var q_material = new THREE.MeshBasicMaterial( {color: 0xffff00, wireframe : true} );
+	var sphere2 = new THREE.Mesh( q_geometry, q_material );
+	scene.add( sphere2 );
+
+	console.log(q_geometry.vertices);
+	//console.log(q_geometry.faces.length)
+	*/
+
 
 	//mouse control
 	controls = new THREE.TrackballControls(camera);
@@ -124,18 +136,58 @@ function render() {
 	renderer.render( scene, camera );
 }
 
+function augmentIcosaResolution(self, dataLength, radius, currentRes) {
+
+	self = new THREE.IcosahedronGeometry(radius, currentRes);
+	
+	console.log('inside=> ' + self.vertices.length);
+
+	if(self.vertices.length > dataLength) {
+		console.log('done');
+		return self;
+	} else {
+		++currentRes;
+		return augmentIcosaResolution(self, dataLength, radius, currentRes);
+	}
+}
+
+function distributeVertices(icosaVerticesArray, dataDistribution) {
+	// pass
+}
+
 init();
 animate();
 
 SOCKET.on('query-init-response', function(response) {
 
-	tweetData.push('data-goes-here-yo');
-
+	console.log(response);
 	scene.remove(sphere);
 
+	// generate new geometry
+	var geo = new THREE.Geometry();
+	var resolution = 0;
+	var radius = 30;
+	var poly = {};
+	poly = augmentIcosaResolution(poly, response.length, radius, resolution);
+	var polyMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00, wireframe : true} );
+	
+	// displace vertices
 	var attributes = {
 		displacement: { type : 'f', value : [] }
 	}
+	var values = attributes.displacement.value;
+
+	for (var v = 0; v < poly.vertices.length; v++) {
+		if(v < response.length) {
+			console.log(response[v]['audience']);
+			poly.vertices[v]['x'] = response[v]['audience'];
+		} else {
+			poly.vertices[v]['x'] = 0;
+		}
+		values.push( Math.random() * 5);
+	}
+
+	console.log(poly.vertices);
 
 	var uniforms =  THREE.UniformsUtils.merge([
 			THREE.UniformsLib[ 'lights' ],
@@ -143,9 +195,9 @@ SOCKET.on('query-init-response', function(response) {
 				'ambient'  				: { type: 'c', value: new THREE.Color( 0xffffff ) },
 				'emissive' 				: { type: 'c', value: new THREE.Color( 0xffffff ) },
 				'wrapRGB'  				: { type: 'v3', value: new THREE.Vector3( 1, 1, 1 ) },
-				'cameraPosX' 			: { type: 'f', value: 0.0 },
-				'cameraPosY' 			: { type: 'f', value: 0.0 },
-				'cameraPosZ' 			: { type: 'f', value: 0.0 },
+				'cameraPosX' 			: { type: 'f', value: 0.2 },
+				'cameraPosY' 			: { type: 'f', value: 0.2 },
+				'cameraPosZ' 			: { type: 'f', value: 0.2 },
 				//'lightDir' : { type: 'v3', value:  new THREE.Vector3(50, -50, -10) }
 			}
 	]);
@@ -156,37 +208,54 @@ SOCKET.on('query-init-response', function(response) {
 		vertexShader		: document.getElementById('vertexShader').textContent,
 		fragmentShader	: document.getElementById('fragmentShader').textContent,
 		lights					: true,
+		wireframe				: true,
+		wireframeLinewidth : 5
 	});
 
-	sphere = new THREE.Mesh( new THREE.IcosahedronGeometry(20, 0), shaderMaterial );
-	sphere.geometry.dynamic = true;
-
-	// foreach tweet push new vertices
-	for(var ii = 0; ii < 200; ii++) {
-		sphere.geometry.vertices.push(
-			new THREE.Vector3( -10,  10, 0 ),
-			new THREE.Vector3( -10, -10, 0 ),
-			new THREE.Vector3(  10, -10, 0 )
-		);
-
-		sphere.geometry.faces.push( new THREE.Face3( 0, 1, 2 ) );
-	}
-	
-	var values = attributes.displacement.value;
-
-	for (var v = 0; v < sphere.geometry.vertices.length; v++) {
-		values.push( Math.random() * 30 );
-	}
-
-	console.log('updated vertices array => ' + sphere.geometry.vertices.length);
-
-	// add sphere
-	sphere.geometry.verticesNeedUpdate = true;
-	sphere.geometry.elementsNeedUpdate = true;
+	poly.computeFaceNormals();
+	poly.computeVertexNormals();
+	poly.verticesNeedUpdate = true;
+	poly.elementsNeedUpdate = true;
+	shaderMaterial.side = THREE.DoubleSide;
 	shaderMaterial.needsUpdate = true;
 	attributes.displacement.needsUpdate = true;
-	scene.add(sphere);
 
+	// add geometry to scene
+	var sphere2 = new THREE.Mesh( poly, shaderMaterial );
+	scene.add(sphere2);
+
+	
+	for(var ii = 0; ii < 1; ii++) {
+		geo.vertices.push(
+			new THREE.Vector3(0, 0, 0),
+			new THREE.Vector3(0, 30, 0),
+			new THREE.Vector3(30, 0, 0),
+			new THREE.Vector3(0, 0, 30),
+			new THREE.Vector3(15, -30, 15)
+		);
+	}
+	geo.faces.push( new THREE.Face3(0, 1, 2) );
+	geo.faces.push( new THREE.Face3(0, 1, 3) );
+	geo.faces.push( new THREE.Face3(1, 2, 3) );
+	geo.faces.push( new THREE.Face3(0, 2, 3) );
+	geo.faces.push( new THREE.Face3(0, 2, 4) );
+	geo.faces.push( new THREE.Face3(0, 3, 4) );
+	geo.faces.push( new THREE.Face3(2, 3, 4) );
+
+
+	
+
+	//geo.computeCentroids();
+	geo.computeFaceNormals();
+	geo.computeVertexNormals();
+	geo.verticesNeedUpdate = true;
+	geo.elementsNeedUpdate = true;
+	shaderMaterial.side = THREE.DoubleSide;
+	shaderMaterial.needsUpdate = true;
+	attributes.displacement.needsUpdate = true;
+	var t_material = new THREE.MeshBasicMaterial( {color: 0xffff00, wireframe : true} );
+	sphere = new THREE.Mesh( geo, t_material );
+	
 
 	controls.addEventListener( 'change', function() {
 		uniforms.cameraPosX.value = camera.position.x/50;

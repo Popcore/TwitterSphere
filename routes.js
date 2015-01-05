@@ -1,6 +1,6 @@
 module.exports = function(app) {
 
-	// index
+	// INDEX
 	app.get('/', function(req, res) {
 		res.render('index.jade');
 	});

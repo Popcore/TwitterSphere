@@ -2,6 +2,8 @@ import nltk
 import sys
 import json
 import tweets_training
+import datetime
+import time
 #nltk.download()
 
 # extract words (bag of words)
@@ -37,7 +39,7 @@ word_features = wordFeatures(bagOfWords(corpusOfTweet))
 
 training = nltk.classify.apply_features(getFeatures, corpusOfTweet)
 classifier = nltk.NaiveBayesClassifier.train(training)
-
+possible_values = { 'positive' : 1, 'neutral' : 0, 'negative' : -1 }
 #print(classifier.show_most_informative_features(15))
 
 # print string passed form node
@@ -47,19 +49,30 @@ classifier = nltk.NaiveBayesClassifier.train(training)
 #	print 'SENTIMENT ' + classifier.classify(getFeatures(line[:-1].split()))
 
 # 1. PROCESS SEARCH DATA
+now_timestamp = int(time.time())
 for tweet in sys.stdin:
 	a =  json.loads(tweet)
 	for i, j in enumerate(a):
 		tweet_text = a[i]['text']
 		tweet_age = a[i]['created_at']
+		month_day_time = tweet_age[:len(tweet_age) - 10]
+		year = tweet_age[len(tweet_age) - 4:]
+		full_date = month_day_time + year
+		date_timestamp = time.mktime(datetime.datetime.strptime(full_date, '%a %b %d %H:%M:%S %Y').timetuple())
+		tweet_hashtags = a[i]['entities']['hashtags']
+		tweet_hashtags_list = []
+		for k, l in enumerate(tweet_hashtags):
+			tweet_hashtags_list.append(tweet_hashtags[k]['text'])
 		tweet_sentiment = classifier.classify(getFeatures(tweet_text.split()))
 		tweet_popularity = a[i]['retweet_count']
-		#user_geo = time_zone else 
+		user_geo = a[i]
 		user_followers = a[i]['user']['followers_count']
 
-		tweet_data = { 'tweet_text' : tweet_text, 
-		'tweet_age' : tweet_age, 
-		'tweet_sentiment' : tweet_sentiment, 
+		tweet_data = { 
+		'tweet_text' : tweet_text, 
+		'tweet_age' : now_timestamp - date_timestamp,
+		'tweet_hashtags' : tweet_hashtags_list, 
+		'tweet_sentiment' : possible_values[tweet_sentiment], 
 		'tweet_popularity' : tweet_popularity, 
 		'user_followers' : user_followers }
 

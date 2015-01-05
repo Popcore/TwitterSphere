@@ -2,6 +2,7 @@ var express 		= require('express'),
 		http				= require('http'),
 		path 				= require('path'),
 		twitter 		= require('twitter'),
+		helpers 		=	require('./helpers'),
 		PythonShell = require('python-shell');
 
 // init app, server and sockets
@@ -44,9 +45,10 @@ var t = new twitter({
 io.on('connection', function(socket) {
 	console.log('io socket open');
 	socket.on('query-init', function() {
-		t.search('sneakers -RT', { 'count' : 1, 'result_type' : 'recent' }, function(data) {
+		t.search('nike -RT', { 'count' : 5, 'result_type' : 'popular', 'lang' : 'en' }, function(data) {
 
-			var dataArray = [];
+			var dataArray = [],
+					dataToPass = [];
 			pyScript = new PythonShell('tweet_analysis.py', pySettings);
 
 			// pass data to script
@@ -70,15 +72,32 @@ io.on('connection', function(socket) {
 				if(err) { console.log(err); }
 
 				for (var j = 0; j < dataArray.length; j++) {
-					for (var k in dataArray[j]) {
-						console.log('key: ' + k + ' | val: ' + dataArray[j][k]);
 
-						// single tweet properties
-
-					}
-					socket.emit('query-init-response', dataArray[j]);
+					var obj = {};
+					obj['sentiment']	=	(dataArray[j]['tweet_sentiment'] * Math.random() * 10); 	// Pos X	
+					obj['age']				=	dataArray[j]['tweet_age'] / 3600;						// Pos Z
+					obj['audience']		=	dataArray[j]['user_followers'];							// Pos Y		
+					obj['retweet']		= dataArray[j]['tweet_popularity'];						// Surface (min 1)	
+				
+					//console.log('SENTIMENT: ' + sentiment);
+					//console.log('AGE: ' + age);
+					//console.log('AUDIENCE: ' + audience);
+					//console.log('RETWEETS: ' + retweet);
+					console.log(obj);
+					dataToPass.push(obj)
 					console.log('========================================');
 				}
+
+				// map audience to range
+				var a = helpers.mapToFixedRange(0, 30, dataToPass, 'audience');
+				// sort by age
+				a.sort(function(a, b) {
+					return a.audience - b.audience;
+				});
+				console.log(a);
+				// emit data array
+				socket.emit('query-init-response', dataToPass);
+
 			});
 		});
 	});
