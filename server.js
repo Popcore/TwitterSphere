@@ -75,9 +75,9 @@ io.on('connection', function(socket) {
 
 					var obj = {};
 					obj['sentiment']	=	(dataArray[j]['tweet_sentiment'] * Math.random() * 10); 	// Pos X	
-					obj['age']				=	dataArray[j]['tweet_age'] / 3600;						// Pos Z
-					obj['audience']		=	dataArray[j]['user_followers'];							// Pos Y		
-					obj['retweet']		= dataArray[j]['tweet_popularity'];						// Surface (min 1)	
+					obj['age']				=	dataArray[j]['tweet_age'] / 3600;													// Pos Z
+					obj['audience']		=	dataArray[j]['user_followers'];														// Pos Y		
+					obj['retweet']		= dataArray[j]['tweet_popularity'];													// Surface (min 1)	
 				
 					//console.log('SENTIMENT: ' + sentiment);
 					//console.log('AGE: ' + age);
@@ -89,7 +89,7 @@ io.on('connection', function(socket) {
 				}
 
 				// map audience to range
-				var a = helpers.mapToFixedRange(0, 30, dataToPass, 'audience');
+				var a = helpers.mapToMaxData(0, 30, dataToPass, 'audience');
 				// sort by age
 				a.sort(function(a, b) {
 					return a.audience - b.audience;

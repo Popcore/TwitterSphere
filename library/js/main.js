@@ -180,7 +180,8 @@ SOCKET.on('query-init-response', function(response) {
 	for (var v = 0; v < poly.vertices.length; v++) {
 		if(v < response.length) {
 			console.log(response[v]['audience']);
-			poly.vertices[v]['x'] = response[v]['audience'];
+			poly.vertices[v]['x'] = poly.vertices[v]['x'] + response[v]['audience'];
+			poly.vertices[v]['z'] = poly.vertices[v]['z'] + response[v]['age'];
 		} else {
 			poly.vertices[v]['x'] = 0;
 		}
