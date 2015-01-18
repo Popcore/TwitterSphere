@@ -79,10 +79,6 @@ io.on('connection', function(socket) {
 					obj['audience']		=	dataArray[j]['user_followers'];														// Pos Y		
 					obj['retweet']		= dataArray[j]['tweet_popularity'];													// Surface (min 1)	
 				
-					//console.log('SENTIMENT: ' + sentiment);
-					//console.log('AGE: ' + age);
-					//console.log('AUDIENCE: ' + audience);
-					//console.log('RETWEETS: ' + retweet);
 					console.log(obj);
 					dataToPass.push(obj)
 					console.log('========================================');

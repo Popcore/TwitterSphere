@@ -106,13 +106,35 @@ function distributeVertices(polygonVerticesArray, tweetsData) {
 
 	verticesReminder = totalVerticesLength % distibutedDataTotal;
 
+	for(var yy = 0, tweetsCounter = 0, tweetsDistributionCounter = 0, changeArr = false; yy < polygonVerticesArray.length; yy++) {
+		if(changeArr == false) {
+			for(var ll = 0; ll <= distibutedData[tweetsCounter]; ll++) {
+				polygonVerticesArray[yy].x = tweetsData[ytweetsDistributionCounter].xVal;
+				polygonVerticesArray[yy].y = tweetsData[tweetsDistributionCounter].yVal;
+				polygonVerticesArray[yy].z = tweetsData[tweetsDistributionCounter].zVal;
+				yy++;
+				tweetsDistributionCounter++;
+				if(ll == distibutedData[tweetsCounter] - 1) {
+					changeArr = true;
+					tweetsCounter++;
+					break;
+				}
+			}
+		} else {
+			polygonVerticesArray[yy].x = (tweetsData[tweetsCounter-1].xVal + tweetsData[tweetsCounter].xVal)/2;
+			polygonVerticesArray[yy].y = (tweetsData[tweetsCounter-1].yVal + tweetsData[tweetsCounter].yVal)/2;
+			polygonVerticesArray[yy].z = (tweetsData[tweetsCounter-1].zVal + tweetsData[tweetsCounter].zVal)/2;
+			changeArr = false;
+		}
+	}
+
 	// NOW WE NEED TO:
 	// 1) RETURN THE DISTRIBUTED DATA AND REMINDER
-	// 2) MAP AND DISTIBUTE 1 DATA UNIT AND 1 REMINDER UNIT TO VERTICES ARRAY
+	// 2) MAP AND DISTRIBUTE 1 DATA UNIT AND 1 REMINDER UNIT TO VERTICES ARRAY
 	// 3) UPDATED REMINDER UNIT INTERVAL VERTEX.X VERTEX.Y VERTEX.Z 
 	// TO VALUES BETWEEN DATA[ALPHA].X - DATA[BETA].X | DATA[ALPHA].Y - DATA[BETA].Y | DATA[ALPHA].Z - DATA[BETA].Z
 }
 
 module.exports.mapToMaxData = mapToMaxData;
 module.exports.normailzeToRange = normailzeToRange;
-
+module.exports.distributeVertices = distributeVertices;

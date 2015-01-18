@@ -34,9 +34,6 @@ function init() {
 
 	scene.add(camera);
 
-	// displacement attributes
-	// the array is expected to have a one to one 
-	// relationship with the mesh vertices
 	var attributes = {
 		displacement: { type : 'f', value : [] }
 	}
@@ -53,8 +50,6 @@ function init() {
 			}
 	]);
 
-	// material
-	// openGL vertex and fragment shader
 	var shaderMaterial = new THREE.ShaderMaterial({
 		attributes 			: attributes,
 		uniforms 				: uniforms,
@@ -123,6 +118,7 @@ function init() {
 	// renderer
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setClearColor(0xbfbfbf, 1); 
 	container.appendChild( renderer.domElement ); 
 };
 
@@ -140,10 +136,7 @@ function augmentIcosaResolution(self, dataLength, radius, currentRes) {
 
 	self = new THREE.IcosahedronGeometry(radius, currentRes);
 	
-	console.log('inside=> ' + self.vertices.length);
-
 	if(self.vertices.length > dataLength) {
-		console.log('done');
 		return self;
 	} else {
 		++currentRes;
@@ -151,8 +144,110 @@ function augmentIcosaResolution(self, dataLength, radius, currentRes) {
 	}
 }
 
-function distributeVertices(icosaVerticesArray, dataDistribution) {
-	// pass
+function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute, displacementVal) {
+	var totalVerticesLength = polygonVerticesArray.length,
+			totalDataLength = tweetsData.length,
+			totalData = 0,
+			dataToVerticesRatio = 0,
+			verticesReminder = 0,
+			distibutedData = [],
+			distibutedDataTotal = 0,
+			changeArr = false;
+
+	if(totalDataLength > totalVerticesLength) {
+		console.log('Error => Data exceed available space');
+		return;
+	}
+
+	for (var ii = 0; ii < totalDataLength; ii++) {
+		totalData += parseInt(tweetsData[ii][valueToDistribute]);
+	}
+
+	dataToVerticesRatio = totalVerticesLength/totalData;
+
+	for (var jj = 0; jj < totalDataLength; jj++) {
+		var distirbutedVal = (Math.floor(tweetsData[jj][valueToDistribute] * dataToVerticesRatio) == 0) ? 1 : Math.floor(tweetsData[jj][valueToDistribute] * dataToVerticesRatio);
+		distibutedData.push(distirbutedVal);
+	}
+
+	for (var kk = 0; kk < distibutedData.length; kk++) {
+		distibutedDataTotal += distibutedData[kk];
+	}
+
+	// THINK ABOUT CASE LIMITS!!!!! (ie what is one loop is not enough?)
+	if(distibutedDataTotal > totalVerticesLength) {
+		
+		var dd1 = totalVerticesLength;
+		var dd2 = distibutedData.length - 1;
+		while(dd1--) {
+			var currentDataTot = 0;
+
+			if(distibutedData[dd2] > 1) {
+				distibutedData[dd2] -= 1;
+
+				for(var tt = 0; tt < distibutedData.length; tt++) {
+					currentDataTot += distibutedData[tt];
+				}
+				
+				if(currentDataTot < totalVerticesLength) {
+					distibutedDataTotal = currentDataTot;
+					console.log(distibutedDataTotal);
+					break;
+				} else if(dd2 < 0) {
+					dd2 = distibutedData.length - 1;
+				} else {
+					dd2--;
+				}
+			} else {
+				if(dd2 >= 0) {
+					dd2--;
+				} else {
+					dd2 = distibutedData.length - 1;
+				}
+			}
+		}
+	}
+
+	verticesReminder = totalVerticesLength % distibutedDataTotal;
+
+	// add inbetweeners (=modulo) to distributeData array
+	for(var aa = 0; aa < totalVerticesLength; aa++) {
+		if(aa % 2 !== 0 && verticesReminder > 0) {
+			distibutedData.splice(aa, 0, 'pass');
+			verticesReminder--;
+		}
+	}
+	console.log('vertices length => ' + totalVerticesLength);
+	console.log('distibuted Data Total => ' +  distibutedDataTotal);
+	console.log('verticesReminder => ' +  verticesReminder);
+	console.log('distibutedData => ' +  distibutedData);
+
+	for(var yy = 0, dataLoopCounter = 0, tweetCounter = 0; yy < totalVerticesLength; yy++) {
+		
+		if(distibutedData[yy] !== 'pass') {
+			for(var xx = 0; xx < distibutedData[dataLoopCounter]; xx++) {
+
+				polygonVerticesArray[yy].x = polygonVerticesArray[yy].x + tweetsData[tweetCounter]['sentiment'];
+				polygonVerticesArray[yy].y = polygonVerticesArray[yy].y + tweetsData[tweetCounter]['audience'];
+				polygonVerticesArray[yy].z = polygonVerticesArray[yy].z + tweetsData[tweetCounter]['age'];
+				if(distibutedData[dataLoopCounter] > 1 && xx < distibutedData[dataLoopCounter] - 1) {
+					yy++;
+				}		
+				displacementVal.push( Math.random() * 2 );		
+			}
+			if(dataLoopCounter < distibutedData.length - 1) {
+				dataLoopCounter++;
+				tweetCounter++;
+			}
+		} else {
+			polygonVerticesArray[yy].x = polygonVerticesArray[yy].x + ((tweetsData[tweetCounter-1]['sentiment'] + tweetsData[tweetCounter + 1]['sentiment'])/2);
+			polygonVerticesArray[yy].y = polygonVerticesArray[yy].y + ((tweetsData[tweetCounter-1]['audience'] + tweetsData[tweetCounter + 1]['audience'])/2);
+			polygonVerticesArray[yy].z = polygonVerticesArray[yy].z + ((tweetsData[tweetCounter-1]['age'] + tweetsData[tweetCounter + 1]['age'])/2);
+			dataLoopCounter++;
+		}
+		displacementVal.push( Math.random() * 2 );
+	}
+	return displacementVal;
 }
 
 init();
@@ -177,16 +272,20 @@ SOCKET.on('query-init-response', function(response) {
 	}
 	var values = attributes.displacement.value;
 
+	/*
 	for (var v = 0; v < poly.vertices.length; v++) {
 		if(v < response.length) {
 			console.log(response[v]['audience']);
-			poly.vertices[v]['x'] = poly.vertices[v]['x'] + response[v]['audience'];
+			poly.vertices[v]['x'] = poly.vertices[v]['x'] + response[v]['sentiment'];
+			poly.vertices[v]['y'] = poly.vertices[v]['y'] + response[v]['audience'];
 			poly.vertices[v]['z'] = poly.vertices[v]['z'] + response[v]['age'];
 		} else {
 			poly.vertices[v]['x'] = 0;
 		}
-		values.push( Math.random() * 5);
+		values.push(1);
 	}
+	*/	
+	distributeVertices(poly.vertices, response, 'audience', values);
 
 	console.log(poly.vertices);
 
@@ -243,10 +342,6 @@ SOCKET.on('query-init-response', function(response) {
 	geo.faces.push( new THREE.Face3(0, 3, 4) );
 	geo.faces.push( new THREE.Face3(2, 3, 4) );
 
-
-	
-
-	//geo.computeCentroids();
 	geo.computeFaceNormals();
 	geo.computeVertexNormals();
 	geo.verticesNeedUpdate = true;
