@@ -45,7 +45,7 @@ var t = new twitter({
 io.on('connection', function(socket) {
 	console.log('io socket open');
 	socket.on('query-init', function() {
-		t.search('nike -RT', { 'count' : 5, 'result_type' : 'popular', 'lang' : 'en' }, function(data) {
+		t.search('sneakers', { 'count' : 15, 'result_type' : 'popular', 'lang' : 'en' }, function(data) {
 
 			var dataArray = [],
 					dataToPass = [];

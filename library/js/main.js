@@ -26,7 +26,7 @@ function init() {
 	// add camera
 	camera = new THREE.PerspectiveCamera(
 		fov,
-		window.innerWidth / window.innerHeight,
+		container.offsetWidth / container.offsetHeight,
 		1,
 		10000 );
 	camera.position.z = 300;
@@ -61,21 +61,6 @@ function init() {
 	// add sphere
 	sphere = new THREE.Mesh( new THREE.IcosahedronGeometry(20, 0), shaderMaterial );
 
-	/*
-	for(var ii = 0; ii < 200; ii++) {
-		sphere.geometry.vertices.push(
-			new THREE.Vector3( -10,  10, 0 ),
-			new THREE.Vector3( -10, -10, 0 ),
-			new THREE.Vector3(  10, -10, 0 )
-		);
-
-		sphere.geometry.faces.push( new THREE.Face3( 0, 1, 2 ) );
-
-		sphere.geometry.verticesNeedUpdate = true;
-		sphere.geometry.elementsNeedUpdate = true;
-	}
-	*/
-
 	sphere.geometry.dynamic = true;
 	
 	// populate array of attributes
@@ -87,23 +72,10 @@ function init() {
 		values.push( Math.random() * 30 );
 	}
 
-	// upadte verices array
-	
+	// update verices array
 	shaderMaterial.needsUpdate = true;
 
 	scene.add(sphere);
-
-
-	/*
-	var q_geometry = new THREE.IcosahedronGeometry( 30, 0);
-	var q_material = new THREE.MeshBasicMaterial( {color: 0xffff00, wireframe : true} );
-	var sphere2 = new THREE.Mesh( q_geometry, q_material );
-	scene.add( sphere2 );
-
-	console.log(q_geometry.vertices);
-	//console.log(q_geometry.faces.length)
-	*/
-
 
 	//mouse control
 	controls = new THREE.TrackballControls(camera);
@@ -117,8 +89,8 @@ function init() {
 
 	// renderer
 	renderer = new THREE.WebGLRenderer();
-	renderer.setSize( window.innerWidth, window.innerHeight );
-	renderer.setClearColor(0xbfbfbf, 1); 
+	renderer.setSize( container.offsetWidth, container.offsetHeight );
+	renderer.setClearColor(0x00000a, 1); 
 	container.appendChild( renderer.domElement ); 
 };
 
@@ -217,10 +189,6 @@ function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute,
 			verticesReminder--;
 		}
 	}
-	console.log('vertices length => ' + totalVerticesLength);
-	console.log('distibuted Data Total => ' +  distibutedDataTotal);
-	console.log('verticesReminder => ' +  verticesReminder);
-	console.log('distibutedData => ' +  distibutedData);
 
 	for(var yy = 0, dataLoopCounter = 0, tweetCounter = 0; yy < totalVerticesLength; yy++) {
 		
@@ -253,6 +221,8 @@ function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute,
 init();
 animate();
 
+
+
 SOCKET.on('query-init-response', function(response) {
 
 	console.log(response);
@@ -271,20 +241,7 @@ SOCKET.on('query-init-response', function(response) {
 		displacement: { type : 'f', value : [] }
 	}
 	var values = attributes.displacement.value;
-
-	/*
-	for (var v = 0; v < poly.vertices.length; v++) {
-		if(v < response.length) {
-			console.log(response[v]['audience']);
-			poly.vertices[v]['x'] = poly.vertices[v]['x'] + response[v]['sentiment'];
-			poly.vertices[v]['y'] = poly.vertices[v]['y'] + response[v]['audience'];
-			poly.vertices[v]['z'] = poly.vertices[v]['z'] + response[v]['age'];
-		} else {
-			poly.vertices[v]['x'] = 0;
-		}
-		values.push(1);
-	}
-	*/	
+	
 	distributeVertices(poly.vertices, response, 'audience', values);
 
 	console.log(poly.vertices);
@@ -298,7 +255,6 @@ SOCKET.on('query-init-response', function(response) {
 				'cameraPosX' 			: { type: 'f', value: 0.2 },
 				'cameraPosY' 			: { type: 'f', value: 0.2 },
 				'cameraPosZ' 			: { type: 'f', value: 0.2 },
-				//'lightDir' : { type: 'v3', value:  new THREE.Vector3(50, -50, -10) }
 			}
 	]);
 
@@ -323,35 +279,6 @@ SOCKET.on('query-init-response', function(response) {
 	// add geometry to scene
 	var sphere2 = new THREE.Mesh( poly, shaderMaterial );
 	scene.add(sphere2);
-
-	
-	for(var ii = 0; ii < 1; ii++) {
-		geo.vertices.push(
-			new THREE.Vector3(0, 0, 0),
-			new THREE.Vector3(0, 30, 0),
-			new THREE.Vector3(30, 0, 0),
-			new THREE.Vector3(0, 0, 30),
-			new THREE.Vector3(15, -30, 15)
-		);
-	}
-	geo.faces.push( new THREE.Face3(0, 1, 2) );
-	geo.faces.push( new THREE.Face3(0, 1, 3) );
-	geo.faces.push( new THREE.Face3(1, 2, 3) );
-	geo.faces.push( new THREE.Face3(0, 2, 3) );
-	geo.faces.push( new THREE.Face3(0, 2, 4) );
-	geo.faces.push( new THREE.Face3(0, 3, 4) );
-	geo.faces.push( new THREE.Face3(2, 3, 4) );
-
-	geo.computeFaceNormals();
-	geo.computeVertexNormals();
-	geo.verticesNeedUpdate = true;
-	geo.elementsNeedUpdate = true;
-	shaderMaterial.side = THREE.DoubleSide;
-	shaderMaterial.needsUpdate = true;
-	attributes.displacement.needsUpdate = true;
-	var t_material = new THREE.MeshBasicMaterial( {color: 0xffff00, wireframe : true} );
-	sphere = new THREE.Mesh( geo, t_material );
-	
 
 	controls.addEventListener( 'change', function() {
 		uniforms.cameraPosX.value = camera.position.x/50;

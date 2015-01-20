@@ -1,3 +1,33 @@
 body {
-	background-color: orange;
+	background-color: #FFF;
+	padding: 0;
+	margin: 0;
+	width: 100%;
+	height: 100%;
 }
+
+aside#side-controls {
+	width: 25%;
+	height: 100%;
+	float: left;
+	background-color: #FFF;
+}
+
+header {
+	width: 75%;
+	float:left;
+	background-color: #333333;
+	color: #FFF;
+}
+
+#container {
+ 	width: 75% !important;;
+	float: left;
+	width: 100%;
+	height: 100%;
+}
+
+#container>canvas {
+ 	width: 100% !important;
+	height: auto !important;
+ }
