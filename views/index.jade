@@ -56,9 +56,15 @@ html(lang="eng")
 				gl_FragColor = vec4(color.rgb * vLighting, 1);
 			}
 
-		aside#side-controls
-			button#start-query.
-				RUN QUERY
+		aside#sidebar
+			h1#title Net&mdash; <br /> work Sphere
+
+			form#side-controls
+				input(type='text', id='keyword', name='keyword', placeholder='Keyword')
+				input(type='text', id='location', name='location', placeholder='Location')
+				input(type='text', id='user', name='user', placeholder='User')
+				
+				input(type='submit', id='start-query', value='GO')
 
 		header
 			h1 Dude Awesome

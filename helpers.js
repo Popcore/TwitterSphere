@@ -30,7 +30,9 @@ var mapToMaxData = function(min, max, tweetsData, valueToCompare) {
 	for(var i = 0; i < tweetsData.length; i++) {
 		if(tweetsData[i][valueToCompare] > tweetsDataMax) {
 			tweetsDataMax = tweetsData[i][valueToCompare];
-		} else if(tweetsData[i][valueToCompare] < tweetsDataMin) {
+		}
+
+		if(tweetsData[i][valueToCompare] < tweetsDataMin) {
 			tweetsDataMin = tweetsData[i][valueToCompare];
 		}
 	}

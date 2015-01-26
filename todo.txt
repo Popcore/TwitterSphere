@@ -1,0 +1,14 @@
+TO DO LIST:
+1) finalise design
+2) add more tweet sample to py script. 200/250 each sentiment
+3) pull more tweets
+3) clean up js
+4) add form to build query
+5) add colours
+6) add realtime streaming + save age to database (CRUD operations)
+7) add axis lines with meaning
+8) add labels
+
+
+BUGS 
+1) mapToMaxData not WORKING PROPERLY!

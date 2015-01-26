@@ -1,26 +1,27 @@
 /***
 * QUERY MODULE
 ***/
-var QUERY = (function() {
- 	var Events = {};
+var Query = (function() {
 
- 	// init query handler
- 	Events.initQuery = function(data) {
-		var data = data;
-		SOCKET.emit('query-init', data);
-	} 
+	// private properties
+	// ...
 
-	// location query handler
-	Events.locationQuery = function(data) {
-		//...
-	}
+ 	return {
+ 		// init query handler
+	 	initQuery : function(data) {
+			SOCKET.emit('query-init', data);
+		},
 
-	// hastag query handler
-	Events.hastagQuery = function(data) {
-		//...
-	}
+		// location query handler
+		locationQuery : function(data) {
+			//...
+		},
 
-	return Events;
+		// hastag query handler
+		hastagQuery : function(data) {
+			//...
+		}
+ 	}
 }());
 
 /***
@@ -29,9 +30,16 @@ var QUERY = (function() {
 jQuery(document).ready(function($) {
 
 	// init query event
-	$('button#start-query').on('click', function() {
-		data = 'my query data';
-		QUERY.initQuery(data);
+	$('form#side-controls').on('submit', function(ev) {
+		ev.preventDefault();
+
+		var queryVars = {
+			queryKeyword : $('input#keyword').val().toLowerCase(),
+			queryLocation : $('input#location').val(),
+			queryUser : $('input#user').val()
+		}
+
+		Query.initQuery(queryVars);
 	});
 
 	// other events

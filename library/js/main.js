@@ -78,7 +78,7 @@ function init() {
 	scene.add(sphere);
 
 	//mouse control
-	controls = new THREE.TrackballControls(camera);
+	controls = new THREE.TrackballControls(camera, container);
 	controls.addEventListener( 'change', render );
 
 	controls.addEventListener( 'change', function() {
@@ -125,6 +125,7 @@ function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute,
 			distibutedData = [],
 			distibutedDataTotal = 0,
 			changeArr = false;
+			// valueToDistribute = Audience
 
 	if(totalDataLength > totalVerticesLength) {
 		console.log('Error => Data exceed available space');
@@ -132,7 +133,7 @@ function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute,
 	}
 
 	for (var ii = 0; ii < totalDataLength; ii++) {
-		totalData += parseInt(tweetsData[ii][valueToDistribute]);
+		totalData += parseInt(tweetsData[ii][valueToDistribute]); 
 	}
 
 	dataToVerticesRatio = totalVerticesLength/totalData;
@@ -145,6 +146,7 @@ function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute,
 	for (var kk = 0; kk < distibutedData.length; kk++) {
 		distibutedDataTotal += distibutedData[kk];
 	}
+
 
 	// THINK ABOUT CASE LIMITS!!!!! (ie what is one loop is not enough?)
 	if(distibutedDataTotal > totalVerticesLength) {
@@ -159,11 +161,11 @@ function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute,
 
 				for(var tt = 0; tt < distibutedData.length; tt++) {
 					currentDataTot += distibutedData[tt];
+					console.log('reduce ' + currentDataTot);
 				}
 				
 				if(currentDataTot < totalVerticesLength) {
 					distibutedDataTotal = currentDataTot;
-					console.log(distibutedDataTotal);
 					break;
 				} else if(dd2 < 0) {
 					dd2 = distibutedData.length - 1;
@@ -174,13 +176,20 @@ function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute,
 				if(dd2 >= 0) {
 					dd2--;
 				} else {
-					dd2 = distibutedData.length - 1;
+					dd1 = totalVerticesLength;
+					dd2 = distibutedData.length;
 				}
 			}
 		}
 	}
 
 	verticesReminder = totalVerticesLength % distibutedDataTotal;
+
+	console.log('total poly vertices =>' + totalVerticesLength + ' distributed data total=> ' + distibutedDataTotal);
+	console.log('Total data length =>' + totalData);
+	console.log('dataToVerticesRatio =>' + dataToVerticesRatio);
+	console.log('distibutedData =>' + distibutedData);
+	console.log('verticesReminder =>' + verticesReminder);
 
 	// add inbetweeners (=modulo) to distributeData array
 	for(var aa = 0; aa < totalVerticesLength; aa++) {
@@ -225,7 +234,7 @@ animate();
 
 SOCKET.on('query-init-response', function(response) {
 
-	console.log(response);
+	console.log('response => ' + response);
 	scene.remove(sphere);
 
 	// generate new geometry
@@ -234,7 +243,6 @@ SOCKET.on('query-init-response', function(response) {
 	var radius = 30;
 	var poly = {};
 	poly = augmentIcosaResolution(poly, response.length, radius, resolution);
-	var polyMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00, wireframe : true} );
 	
 	// displace vertices
 	var attributes = {
@@ -264,8 +272,8 @@ SOCKET.on('query-init-response', function(response) {
 		vertexShader		: document.getElementById('vertexShader').textContent,
 		fragmentShader	: document.getElementById('fragmentShader').textContent,
 		lights					: true,
-		wireframe				: true,
-		wireframeLinewidth : 5
+		// wireframe				: true,
+		// wireframeLinewidth : 5
 	});
 
 	poly.computeFaceNormals();
