@@ -29,6 +29,15 @@ var Query = (function() {
 ***/
 jQuery(document).ready(function($) {
 
+	// display submit button if dorm has values
+	$('input.user-query-data').on('focus', function() {
+		if($('input.user-query-data').filter(function() { return $(this).val(); }).length > 0) {
+			$('input#start-query').removeClass('hidden-el');
+		} else {
+			$('input#start-query').addClass('hidden-el');
+		}
+	});
+	
 	// init query event
 	$('form#side-controls').on('submit', function(ev) {
 		ev.preventDefault();

@@ -14,6 +14,7 @@ var animation = null,
 		start = Date.now(),
 		dirLight,
 		ambientLight,
+		networkPoly = {},
 		tweetData = [],
 		fov = 30;
 
@@ -116,8 +117,8 @@ function augmentIcosaResolution(self, dataLength, radius, currentRes) {
 	}
 }
 
-function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute, displacementVal) {
-	var totalVerticesLength = polygonVerticesArray.length,
+function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDistribute, displacementVal) {
+	var totalVerticesLength = networkPolygonVerticesArray.length,
 			totalDataLength = tweetsData.length,
 			totalData = 0,
 			dataToVerticesRatio = 0,
@@ -161,7 +162,6 @@ function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute,
 
 				for(var tt = 0; tt < distibutedData.length; tt++) {
 					currentDataTot += distibutedData[tt];
-					console.log('reduce ' + currentDataTot);
 				}
 				
 				if(currentDataTot < totalVerticesLength) {
@@ -185,7 +185,7 @@ function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute,
 
 	verticesReminder = totalVerticesLength % distibutedDataTotal;
 
-	console.log('total poly vertices =>' + totalVerticesLength + ' distributed data total=> ' + distibutedDataTotal);
+	console.log('total networkPoly vertices =>' + totalVerticesLength + ' distributed data total=> ' + distibutedDataTotal);
 	console.log('Total data length =>' + totalData);
 	console.log('dataToVerticesRatio =>' + dataToVerticesRatio);
 	console.log('distibutedData =>' + distibutedData);
@@ -204,10 +204,10 @@ function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute,
 		if(distibutedData[yy] !== 'pass') {
 			for(var xx = 0; xx < distibutedData[dataLoopCounter]; xx++) {
 
-				polygonVerticesArray[yy].x = polygonVerticesArray[yy].x + tweetsData[tweetCounter]['sentiment'];
-				polygonVerticesArray[yy].y = polygonVerticesArray[yy].y + tweetsData[tweetCounter]['audience'];
-				polygonVerticesArray[yy].z = polygonVerticesArray[yy].z + tweetsData[tweetCounter]['age'];
-				if(distibutedData[dataLoopCounter] > 1 && xx < distibutedData[dataLoopCounter] - 1) {
+				networkPolygonVerticesArray[yy].x = networkPolygonVerticesArray[yy].x + tweetsData[tweetCounter]['sentiment'];
+				networkPolygonVerticesArray[yy].y = networkPolygonVerticesArray[yy].y + tweetsData[tweetCounter]['audience'];
+				networkPolygonVerticesArray[yy].z = networkPolygonVerticesArray[yy].z + tweetsData[tweetCounter]['age'];
+				if(distibutedData[dataLoopCounter] > 1 && xx < distibutedData[dataLoopCounter] - 1 && yy < totalVerticesLength - 1) {
 					yy++;
 				}		
 				displacementVal.push( Math.random() * 2 );		
@@ -217,9 +217,9 @@ function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute,
 				tweetCounter++;
 			}
 		} else {
-			polygonVerticesArray[yy].x = polygonVerticesArray[yy].x + ((tweetsData[tweetCounter-1]['sentiment'] + tweetsData[tweetCounter + 1]['sentiment'])/2);
-			polygonVerticesArray[yy].y = polygonVerticesArray[yy].y + ((tweetsData[tweetCounter-1]['audience'] + tweetsData[tweetCounter + 1]['audience'])/2);
-			polygonVerticesArray[yy].z = polygonVerticesArray[yy].z + ((tweetsData[tweetCounter-1]['age'] + tweetsData[tweetCounter + 1]['age'])/2);
+			networkPolygonVerticesArray[yy].x = networkPolygonVerticesArray[yy].x + ((tweetsData[tweetCounter-1]['sentiment'] + tweetsData[tweetCounter + 1]['sentiment'])/2);
+			networkPolygonVerticesArray[yy].y = networkPolygonVerticesArray[yy].y + ((tweetsData[tweetCounter-1]['audience'] + tweetsData[tweetCounter + 1]['audience'])/2);
+			networkPolygonVerticesArray[yy].z = networkPolygonVerticesArray[yy].z + ((tweetsData[tweetCounter-1]['age'] + tweetsData[tweetCounter + 1]['age'])/2);
 			dataLoopCounter++;
 		}
 		displacementVal.push( Math.random() * 2 );
@@ -228,31 +228,31 @@ function distributeVertices(polygonVerticesArray, tweetsData, valueToDistribute,
 }
 
 init();
+
 animate();
 
-
-
+/*
+* INIT NETWORK GRAPH
+*/
 SOCKET.on('query-init-response', function(response) {
 
-	console.log('response => ' + response);
 	scene.remove(sphere);
 
 	// generate new geometry
 	var geo = new THREE.Geometry();
 	var resolution = 0;
 	var radius = 30;
-	var poly = {};
-	poly = augmentIcosaResolution(poly, response.length, radius, resolution);
+	networkPoly = augmentIcosaResolution(networkPoly, response.length, radius, resolution);
 	
 	// displace vertices
 	var attributes = {
 		displacement: { type : 'f', value : [] }
 	}
-	var values = attributes.displacement.value;
 	
-	distributeVertices(poly.vertices, response, 'audience', values);
-
-	console.log(poly.vertices);
+	// displacement array 
+	var displacementValues = attributes.displacement.value;
+	
+	distributeVertices(networkPoly.vertices, response, 'audience', displacementValues);
 
 	var uniforms =  THREE.UniformsUtils.merge([
 			THREE.UniformsLib[ 'lights' ],
@@ -276,16 +276,16 @@ SOCKET.on('query-init-response', function(response) {
 		// wireframeLinewidth : 5
 	});
 
-	poly.computeFaceNormals();
-	poly.computeVertexNormals();
-	poly.verticesNeedUpdate = true;
-	poly.elementsNeedUpdate = true;
+	networkPoly.computeFaceNormals();
+	networkPoly.computeVertexNormals();
+	networkPoly.verticesNeedUpdate = true;
+	networkPoly.elementsNeedUpdate = true;
 	shaderMaterial.side = THREE.DoubleSide;
 	shaderMaterial.needsUpdate = true;
 	attributes.displacement.needsUpdate = true;
 
 	// add geometry to scene
-	var sphere2 = new THREE.Mesh( poly, shaderMaterial );
+	var sphere2 = new THREE.Mesh( networkPoly, shaderMaterial );
 	scene.add(sphere2);
 
 	controls.addEventListener( 'change', function() {
@@ -295,4 +295,15 @@ SOCKET.on('query-init-response', function(response) {
 	});
 
 	render();
+	SOCKET.emit('query-init-completed');
+});
+
+/*
+* AUGMENT NETWORK GRAPH WITH STREAMING DATA
+*/
+SOCKET.on('streaming-response', function(response) {
+	// augment vertices array
+	// see: http://stackoverflow.com/questions/24531109/three-js-vertices-does-not-update
+	console.log('response from server =>' + response);
+	console.log(networkPoly);
 });

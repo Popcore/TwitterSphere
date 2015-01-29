@@ -29,8 +29,8 @@ html(lang="eng")
 
 				gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
 
-				highp vec3 ambientLight = vec3(0.6, 0.6, 0.6);
-				highp vec3 directionalLightColor = vec3(0.5, 0.5, 0.75);
+				highp vec3 ambientLight = vec3(0.4, 0.4, 0.4);
+				highp vec3 directionalLightColor = vec3(0.2, 0.2, 0.2);
 				highp vec3 directionalVector = vec3(cameraPosX, cameraPosY, cameraPosZ);
 
 				vec4 transNormal = u_normalMatrix * vec4(vNormal, 1);
@@ -60,11 +60,11 @@ html(lang="eng")
 			h1#title Net&mdash; <br /> work Sphere
 
 			form#side-controls
-				input(type='text', id='keyword', name='keyword', placeholder='Keyword')
-				input(type='text', id='location', name='location', placeholder='Location')
-				input(type='text', id='user', name='user', placeholder='User')
+				input(type='text', class="user-query-data", id='keyword', name='keyword', placeholder='Keyword')
+				input(type='text', class="user-query-data", id='location', name='location', placeholder='Location')
+				input(type='text', class="user-query-data", id='user', name='user', placeholder='User')
 				
-				input(type='submit', id='start-query', value='GO')
+				input(type='submit', class="hidden-el", id='start-query', value='GO')
 
 		header
 			h1 Dude Awesome

@@ -21,6 +21,10 @@ var pySettings = {
 
 module.exports = {
 
+	queryData : '',
+
+	dataArray : [],
+
 	logthis : function() {
 		console.log('controller');
 	},
@@ -30,11 +34,12 @@ module.exports = {
 
 		// IO connection
 		io.on('connection', function(socket) {
-			console.log('io socket open');
 
 			socket.on('query-init', function(data) {
-				
-				var keyword = data.queryKeyword;
+
+				// augment query data 
+				this.queryData = data;
+				var keyword = this.queryData.queryKeyword;
 
 				t.search(keyword, { 'count' : 5, 'lang' : 'en', 'result_type' : 'recent' }, function(data) { 
 
@@ -78,6 +83,8 @@ module.exports = {
 						// map audience to range
 						var mappedData = helpers.mapToMaxData(0, 30, dataToPass, 'audience');
 
+						console.log(mappedData)
+
 						// sort by age
 						mappedData.sort(function(a, b) {
 							return a.audience - b.audience;
@@ -90,16 +97,59 @@ module.exports = {
 				});
 			});
 
-			// IO client query
-			socket.on('custom-query', function() {
-				// ...
+			socket.on('query-init-completed', function() {
+				console.log(this.queryData);
+
+				var stremingData = 'Hello World. Contorller is streaming data';
+
+				socket.emit('streaming-response', stremingData);
+				/*
+				t.stream(
+					'statuses/filter',
+					{ track: ['sneakers'] },
+					function(stream) {
+						stream.on('data', function(tweet) {
+							console.log("new tweet");
+
+							// init python script
+							pyScript = new PythonShell('tweet_analysis.py', pySettings);
+							// pass data to script
+							pyScript.send(tweet.text);
+
+							pyScript.on('message', function(message) {
+								// response from python script
+								console.log(message);
+							});
+
+							// end stream and exit process
+							pyScript.end(function(err) {
+								if(err) { console.log(err); }
+
+								console.log('=========== END ===========');
+							});
+							// console.log('tweet user => ');
+							// for(var i in tweet.user) {
+							// 	console.log(i + ' => ' + tweet.user[i]);
+							// }
+							// console.log('tweet text => ' + tweet.text);
+							// console.log('tweet geo => ' + tweet.geo);
+							// console.log('tweet coordinates => ' + tweet.coordinates);
+							// console.log('tweet place => ' + tweet.place);
+							// console.log('tweet date => ' + tweet.created_at);
+							// console.log('retweet => ' + tweet.retweet_count);
+						});
+					}
+				);
+				*/
 			});
 
 		});
 	},
 
 	stremaData : function(server) {
-		// ...
+		// IO client query
+		var io = require('socket.io')(server);
+
 	}
 
 }
@@ -118,47 +168,6 @@ function getByLocation(location) {
 		}
 	});
 }
-*/
-
-// 2A. real time stream
-/*
-t.stream(
-	'statuses/filter',
-	{ track: ['sneakers'] },
-	function(stream) {
-		stream.on('data', function(tweet) {
-			console.log("new tweet");
-
-			// init python script
-			pyScript = new PythonShell('tweet_analysis.py', pySettings);
-			// pass data to script
-			pyScript.send(tweet.text);
-
-			pyScript.on('message', function(message) {
-				// response from python script
-				console.log(message);
-			});
-
-			// end stream and exit process
-			pyScript.end(function(err) {
-				if(err) { console.log(err); }
-
-				console.log('=========== END ===========');
-			});
-			// console.log('tweet user => ');
-			// for(var i in tweet.user) {
-			// 	console.log(i + ' => ' + tweet.user[i]);
-			// }
-			// console.log('tweet text => ' + tweet.text);
-			// console.log('tweet geo => ' + tweet.geo);
-			// console.log('tweet coordinates => ' + tweet.coordinates);
-			// console.log('tweet place => ' + tweet.place);
-			// console.log('tweet date => ' + tweet.created_at);
-			// console.log('retweet => ' + tweet.retweet_count);
-		});
-	}
-);
-// pyScript.send('testing');
 */
 
 
