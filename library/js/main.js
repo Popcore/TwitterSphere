@@ -15,7 +15,6 @@ var animation = null,
 		dirLight,
 		ambientLight,
 		networkPoly = {},
-		tweetData = [],
 		fov = 30;
 
 function init() {
@@ -149,7 +148,6 @@ function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDist
 	}
 
 
-	// THINK ABOUT CASE LIMITS!!!!! (ie what is one loop is not enough?)
 	if(distibutedDataTotal > totalVerticesLength) {
 		
 		var dd1 = totalVerticesLength;

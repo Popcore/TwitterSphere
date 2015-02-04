@@ -29,8 +29,8 @@ var Query = (function() {
 ***/
 jQuery(document).ready(function($) {
 
-	// display submit button if dorm has values
-	$('input.user-query-data').on('focus', function() {
+	// display submit button if form has values
+	$('input.user-query-data').on('keypress', function() {
 		if($('input.user-query-data').filter(function() { return $(this).val(); }).length > 0) {
 			$('input#start-query').removeClass('hidden-el');
 		} else {

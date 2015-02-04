@@ -21,9 +21,14 @@ var pySettings = {
 
 module.exports = {
 
-	queryData : '',
+	// user request
+	queryData : {},
 
-	dataArray : [],
+	// processed twitter data to exchange with threejs controller
+	processTwitterData : {},
+
+	// geomtry data sent from threejs
+	geometryArray : {},
 
 	logthis : function() {
 		console.log('controller');
@@ -36,6 +41,8 @@ module.exports = {
 		io.on('connection', function(socket) {
 
 			socket.on('query-init', function(data) {
+
+				var that = this;
 
 				// augment query data 
 				this.queryData = data;
@@ -50,9 +57,9 @@ module.exports = {
 					// pass data to script
 					pyScript.send(data['statuses']);
 
-					// handle response
+					// handle response from py
 					pyScript.on('message', function(message) {
-						// response from python script
+
 						var tweetData = {}
 						for( var i in message ) {
 							tweetData[i] = message[i];
@@ -77,72 +84,84 @@ module.exports = {
 							dataToPass.push(obj);
 						}
 
-						// test for empty response!
-						// if( empty response) { raise error and display massage 'Query returned empty' }
-
 						// map audience to range
 						var mappedData = helpers.mapToMaxData(0, 30, dataToPass, 'audience');
+						console.log("mapped data => ");
+						console.log(mappedData);
 
-						console.log(mappedData)
-
-						// sort by age
+						// sort by audience
 						mappedData.sort(function(a, b) {
 							return a.audience - b.audience;
 						});
 
+						// augment twitter data property
+						that.processTwitterData = mappedData;
+
 						// emit data array
-						socket.emit('query-init-response', mappedData);
+						socket.emit('query-init-response', that.processTwitterData);
 					});
 
 				});
 			});
 
 			socket.on('query-init-completed', function() {
-				console.log(this.queryData);
 
-				var stremingData = 'Hello World. Contorller is streaming data';
-
-				socket.emit('streaming-response', stremingData);
-				/*
+				var stremingData = 'Hello World. Contorller is streaming data',
+						queryKeyword = this.queryData.queryKeyword,
+						processedTData = this.processTwitterData,
+						geometryData = this.dataArray,
+						that = this;
+				
 				t.stream(
 					'statuses/filter',
-					{ track: ['sneakers'] },
+					{ track: [ queryKeyword ] },
 					function(stream) {
-						stream.on('data', function(tweet) {
+						stream.on('data', function(data) {
 							console.log("new tweet");
+							var tweetObj = {};
 
 							// init python script
 							pyScript = new PythonShell('tweet_analysis.py', pySettings);
-							// pass data to script
-							pyScript.send(tweet.text);
-
+							pyScript.send(Array(data));
 							pyScript.on('message', function(message) {
 								// response from python script
-								console.log(message);
+								for(var i in message) {
+									tweetObj[i] = message[i];
+								}
 							});
 
 							// end stream and exit process
 							pyScript.end(function(err) {
 								if(err) { console.log(err); }
 
+								var pyObj = {
+									sentiment : tweetObj['tweet_sentiment'] * Math.random() * 10, 	// Pos X
+									age 			: tweetObj['tweet_age'] / 3600,
+									audience	: tweetObj['user_followers'],
+									retweet		: tweetObj['tweet_popularity']
+								}
+
+								// map audience to range
+								processedTData.push(pyObj);
+								processedTData = helpers.mapToMaxData(0, 30, processedTData, 'audience');
+								
+								// sort by audience
+								processedTData.sort(function(a, b) {
+									return a.audience - b.audience;
+								});
+
+								console.log(that.processTwitterData);  
+								console.log('============================'); 
+								console.log(processedTData);
+
+								// emit data array
+
 								console.log('=========== END ===========');
 							});
-							// console.log('tweet user => ');
-							// for(var i in tweet.user) {
-							// 	console.log(i + ' => ' + tweet.user[i]);
-							// }
-							// console.log('tweet text => ' + tweet.text);
-							// console.log('tweet geo => ' + tweet.geo);
-							// console.log('tweet coordinates => ' + tweet.coordinates);
-							// console.log('tweet place => ' + tweet.place);
-							// console.log('tweet date => ' + tweet.created_at);
-							// console.log('retweet => ' + tweet.retweet_count);
 						});
 					}
 				);
-				*/
 			});
-
 		});
 	},
 

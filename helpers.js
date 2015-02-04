@@ -39,7 +39,7 @@ var mapToMaxData = function(min, max, tweetsData, valueToCompare) {
 
 	ratio = max / tweetsDataMax;
 	for(var j = 0; j < tweetsData.length; j++) {
-		tweetsData[j][valueToCompare] = tweetsData[j][valueToCompare] * ratio;
+		tweetsData[j]["influence"] = tweetsData[j][valueToCompare] * ratio;
 	}
 
 	return tweetsData;
