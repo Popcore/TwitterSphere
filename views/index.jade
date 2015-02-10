@@ -19,13 +19,19 @@ html(lang="eng")
 			varying vec3 vNormal;
 			varying float v_Dot;
 			varying vec3 vLighting;
+
+			attribute vec4 attribColors;
+			varying	vec4 colorsArr;
    
 			void main() {
 				vec3 light = normalize(lightDir);
 				vec3 newPosition = position + normal * vec3(displacement);
 
-				// therr provides normal value
+				// three provides normal value
 				vNormal = normal;
+
+				// pass color to fragment shader
+				colorsArr = attribColors;
 
 				gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
 
@@ -44,16 +50,13 @@ html(lang="eng")
 		script(type="x-shader/x-vertex" id="fragmentShader").
 			varying float v_Dot;
 			varying vec3 vNormal;
+			varying vec4 colorsArr;
 
 			// lights
-			varying highp vec3 vLighting;
+			// varying highp vec3 vLighting;
 
 			void main() {
-				vec4 color = vec4(0.2, 0.2, 0.2, 1);
-
-				float dProdb = max(0.5, v_Dot);
-
-				gl_FragColor = vec4(color.rgb * vLighting, 1);
+				gl_FragColor = vec4(colorsArr);
 			}
 
 		aside#sidebar

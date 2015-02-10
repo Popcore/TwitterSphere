@@ -12,3 +12,4 @@ TO DO LIST:
 
 BUGS 
 1) mapToMaxData not WORKING PROPERLY!
+2) improve sorting

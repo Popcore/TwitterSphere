@@ -86,12 +86,10 @@ module.exports = {
 
 						// map audience to range
 						var mappedData = helpers.mapToMaxData(0, 30, dataToPass, 'audience');
-						console.log("mapped data => ");
-						console.log(mappedData);
 
 						// sort by audience
 						mappedData.sort(function(a, b) {
-							return a.audience - b.audience;
+							return a.age - b.age;
 						});
 
 						// augment twitter data property
@@ -150,13 +148,9 @@ module.exports = {
 									return a.audience - b.audience;
 								});
 
-								console.log(that.processTwitterData);  
-								console.log('============================'); 
-								console.log(processedTData);
-
 								// emit data array
+								socket.emit('streaming-response', processedTData);
 
-								console.log('=========== END ===========');
 							});
 						});
 					}
@@ -172,22 +166,3 @@ module.exports = {
 	}
 
 }
-
-// 1B. query entry point => search by trends/place
-/**
-* TO TEST!!!
-* must be able to PASS LOCATION as argument
-**/
-/*
-function getByLocation(location) {
-	// pass location into query
-	t.get('/trends/place.json?id=1', function(data, res) {
-		for(var i in data) {
-			console.log(data[i]);
-		}
-	});
-}
-*/
-
-
-
