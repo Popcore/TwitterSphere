@@ -11,6 +11,7 @@ var animation = null,
 		axisScene,
 		camera,
 		mesh,
+		vMeshParent,
 		sphere,
 		sphere2,
 		controls,
@@ -24,14 +25,11 @@ var animation = null,
 
 function init() {
 
-	container = document.getElementById('container');
+	container 		= document.getElementById('container');
 	axisContainer = document.getElementById('axis-container');
-
-	scene = new THREE.Scene();
-	axisScene = new THREE.Scene();
-
-	// add camera
-	camera = new THREE.PerspectiveCamera(
+	scene 				= new THREE.Scene();
+	axisScene 		= new THREE.Scene();
+	camera 				= new THREE.PerspectiveCamera(
 		fov,
 		container.offsetWidth / container.offsetHeight,
 		1,
@@ -45,7 +43,7 @@ function init() {
 		displacement : { type : 'f', value : [] },
 		attribColors : { type : 'v4', value : [] }
 	}
-	uniforms =  THREE.UniformsUtils.merge([
+	uniforms 			 =  THREE.UniformsUtils.merge([
 			THREE.UniformsLib[ 'lights' ],
 			{
 				'ambient'  		: { type: 'c', value: new THREE.Color( 0xffffff ) },
@@ -71,26 +69,32 @@ function init() {
 	sphere.geometry.dynamic = true;
 	
 	// populate array of attributes
-	var vertices = sphere.geometry.vertices;
-	var faces = sphere.geometry.faces;
+	var vertices 	= sphere.geometry.vertices;
+	var faces 		= sphere.geometry.faces;
 
+	vMeshParent = new THREE.Object3D();
+
+	// vartices color
 	for (var v = 0; v < vertices.length; v++) {
-		attributes.displacement.value.push( Math.random() * 30 );
 
-		var vSphere = new THREE.SphereGeometry(5, 32, 32);
-		var vMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-		var vMesh = new THREE.Mesh( vSphere, vMaterial );
+		var vSphere 		 = new THREE.SphereGeometry(5, 32, 32);
+		var vMaterial 	 = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+		vMesh 			 		 = new THREE.Mesh( vSphere, vMaterial );
 		vMesh.position.x = vertices[v].x;
 		vMesh.position.y = vertices[v].y;
 		vMesh.position.z = vertices[v].z;
-		scene.add(vMesh);
+		vMesh.name 		 		= 'vMesh' + v;
+		vMeshParent.add(vMesh);
 
-		var red = Math.random();
+		attributes.displacement.value.push( Math.random() * 30 );
+		var red 	= Math.random();
 	  var green = Math.random();
-	  var blue = Math.random();
+	  var blue 	= Math.random();
 	  var alpha = 1;
 	  attributes.attribColors.value.push( new THREE.Vector4( red, green, blue, alpha ));
 	}
+
+	scene.add(vMeshParent);
 
 	// update verices array
 	shaderMaterial.needsUpdate = true;
@@ -122,50 +126,50 @@ function init() {
 
 	// labels
 	// sentiment
-	var label1Canvas = document.createElement('canvas');
-	var label1Context = label1Canvas.getContext('2d');
-	label1Context.font = '13px Helvetica';
+	var label1Canvas 				= document.createElement('canvas');
+	var label1Context 			= label1Canvas.getContext('2d');
+	label1Context.font 			= '13px Helvetica';
 	label1Context.fillStyle = 'rgba(255, 0, 0, 1)';
 	label1Context.fillText('sentiment', 170, 69);
-	var label1Texture = new THREE.Texture(label1Canvas);
+	var label1Texture 			= new THREE.Texture(label1Canvas);
 	label1Texture.needsUpdate = true;
-	var label1Material = new THREE.MeshBasicMaterial({ map: label1Texture, side: THREE.DoubleSide });
+	var label1Material 			= new THREE.MeshBasicMaterial({ map: label1Texture, side: THREE.DoubleSide });
 	label1Material.transparent = true;
-	var mesh1 = new THREE.Mesh( new THREE.PlaneGeometry(label1Canvas.width, label1Canvas.height), label1Material);
+	var mesh1 							= new THREE.Mesh( new THREE.PlaneGeometry(label1Canvas.width, label1Canvas.height), label1Material);
 	mesh1.position.set(0, 0, 0);
 	axisScene.add(mesh1);
 
 	// age
-	var label2Canvas = document.createElement('canvas');
-	var label2Context = label1Canvas.getContext('2d');
-	label2Context.font = '13px Helvetica';
+	var label2Canvas 				= document.createElement('canvas');
+	var label2Context 			= label1Canvas.getContext('2d');
+	label2Context.font 			= '13px Helvetica';
 	label2Context.fillStyle = 'rgba(0, 255, 0, 1)';
 	label2Context.fillText('influence', 120, 23);
-	var label2Texture = new THREE.Texture(label2Canvas);
+	var label2Texture 			= new THREE.Texture(label2Canvas);
 	label2Texture.needsUpdate = true;
-	var label2Material = new THREE.MeshBasicMaterial({ map: label2Texture, side: THREE.DoubleSide });
+	var label2Material 			= new THREE.MeshBasicMaterial({ map: label2Texture, side: THREE.DoubleSide });
 	label2Material.transparent = true;
-	var mesh2 = new THREE.Mesh( new THREE.PlaneGeometry(label2Canvas.width, label2Canvas.height), label2Material);
+	var mesh2 							= new THREE.Mesh( new THREE.PlaneGeometry(label2Canvas.width, label2Canvas.height), label2Material);
 	mesh2.position.set(0, 0, 0);
 	axisScene.add(mesh2);
 
 	// sentiment
-	var label3Canvas = document.createElement('canvas');
-	var label3Context = label3Canvas.getContext('2d');
-	label3Context.font = '13px Helvetica';
+	var label3Canvas 				= document.createElement('canvas');
+	var label3Context 			= label3Canvas.getContext('2d');
+	label3Context.font 			= '13px Helvetica';
 	label3Context.fillStyle = 'rgba(0, 0, 255, 1)';
 	label3Context.fillText('age', 100, 69);
-	var label3Texture = new THREE.Texture(label3Canvas);
+	var label3Texture 			= new THREE.Texture(label3Canvas);
 	label3Texture.needsUpdate = true;
-	var label3Material = new THREE.MeshBasicMaterial({ map: label3Texture, side: THREE.DoubleSide });
+	var label3Material 			= new THREE.MeshBasicMaterial({ map: label3Texture, side: THREE.DoubleSide });
 	label3Material.transparent = true;
-	var mesh3 = new THREE.Mesh( new THREE.PlaneGeometry(label3Canvas.width, label3Canvas.height), label3Material);
+	var mesh3 							= new THREE.Mesh( new THREE.PlaneGeometry(label3Canvas.width, label3Canvas.height), label3Material);
 	mesh3.position.set(0, 0, 0);
 
-	var parent = new THREE.Object3D();
+	var parent 							= new THREE.Object3D();
 	mesh3.applyMatrix( new THREE.Matrix4().makeRotationY( Math.PI ));
 	parent.add(mesh3);
-	parent.rotation.y = Math.PI/2;
+	parent.rotation.y 			= Math.PI/2;
 	parent.position.set(0, 0, 0);
 	axisScene.add(parent)
 
@@ -364,8 +368,31 @@ function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDist
 	return networkPolygonVerticesArray, displacementVal, colorsVal;
 }
 
-function addSphereOnvertices(vertices, radiusData) {
+function addSphereOnVertex(verticesArray, radiusDataArray) {
 
+	scene.remove(vMeshParent);
+
+	vMeshParent = new THREE.Object3D();
+
+	for(var ii = 0; ii < verticesArray.length; ii++) {
+
+		/*
+		if(vMesh.name = 'vMesh' + ii) {
+			console.log(vMesh['vMesh' + ii]);
+			scene.remove('vMesh' + ii);
+		}
+		*/
+		var vSphere 		 = new THREE.SphereGeometry(5, 32, 32);
+		var vMaterial 	 = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+		vMesh 			 		 = new THREE.Mesh( vSphere, vMaterial );
+		vMesh.position.x = verticesArray[ii].x;
+		vMesh.position.y = verticesArray[ii].y;
+		vMesh.position.z = verticesArray[ii].z;
+		vMesh.name 		 	 = 'vMesh' + ii;
+		vMeshParent.add(vMesh);
+	}
+
+	scene.add(vMeshParent);
 }
 
 init();
@@ -395,6 +422,7 @@ SOCKET.on('query-init-response', function(response) {
 	var colorValues 				= attributes.attribColors.value;
 	
 	distributeVertices(networkPoly.vertices, response, 'influence', displacementValues, colorValues);
+	addSphereOnVertex(networkPoly.vertices);
 
 	uniforms =  THREE.UniformsUtils.merge([
 			THREE.UniformsLib[ 'lights' ],
@@ -445,7 +473,7 @@ SOCKET.on('query-init-response', function(response) {
 * AUGMENT NETWORK GRAPH WITH STREAMING DATA
 */
 SOCKET.on('streaming-response', function(response) {
-	
+
 	var radius 			= 30,
 			resolution 	= 0;
 
@@ -457,9 +485,13 @@ SOCKET.on('streaming-response', function(response) {
 			displacement : { type : 'f',  value : [] },
 			attribColors : { type : 'v4', value : [] }
 		}
+
+		// updated uniforms here
+		// age animation has to continue when streaming
 		var displacementValues 	= attributes.displacement.value;
 		var colorValues 				= attributes.attribColors.value;
 		distributeVertices(networkPoly.vertices, response, 'influence', displacementValues, colorValues);
+		addSphereOnVertex(networkPoly.vertices);
 
 		// update geometry
 		networkPoly.computeFaceNormals();

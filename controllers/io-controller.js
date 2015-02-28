@@ -20,8 +20,6 @@ var streamData = function(server) {
 
 	SOCKET.on('query-init', function(data) {
 
-		console.log('rock n roll');
-
 		var that = this;
 
 		// augment query data 
