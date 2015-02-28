@@ -19,12 +19,14 @@ function arrayMax(numericArr) {
 * @params min, max, type:int, the max and min values to map the array data to
 * @params tweetsData, type:array, the body of data
 * @params valueToCompare, type:string, the tweet obj propery to compare 
+* @params [valueToAdd, type: string, the new property to add to tweetsData array if valueToCompare suld be kept intact 
 * @return type:int, the mapped value
 */
-var mapToMaxData = function(min, max, tweetsData, valueToCompare) {
+var mapToMaxData = function(min, max, tweetsData, valueToCompare, valueToAdd) {
 	var tweetsDataMax = 0,
 			tweetsDataMin = 999999999999,
-			ratio = 0;
+			ratio = 0,
+			tweetsValue = valueToAdd || valueToCompare;
 
 	// get min and max values
 	for(var i = 0; i < tweetsData.length; i++) {
@@ -39,7 +41,7 @@ var mapToMaxData = function(min, max, tweetsData, valueToCompare) {
 
 	ratio = max / tweetsDataMax;
 	for(var j = 0; j < tweetsData.length; j++) {
-		tweetsData[j]["influence"] = tweetsData[j][valueToCompare] * ratio;
+		tweetsData[j][tweetsValue] = tweetsData[j][valueToCompare] * ratio;
 	}
 
 	return tweetsData;

@@ -14,18 +14,19 @@ html(lang="eng")
 			uniform float cameraPosX;
 			uniform float cameraPosY;
 			uniform float cameraPosZ;
+			uniform float age_amplitude;
+
 			varying vec3 newPosition;
-			attribute float displacement;
 			varying vec3 vNormal;
 			varying float v_Dot;
 			varying vec3 vLighting;
-
-			attribute vec4 attribColors;
 			varying	vec4 colorsArr;
+			attribute float displacement;
+			attribute vec4 attribColors;
    
 			void main() {
 				vec3 light = normalize(lightDir);
-				vec3 newPosition = position + normal * vec3(displacement);
+				vec3 newPosition = position + normal * vec3(displacement * age_amplitude);
 
 				// three provides normal value
 				vNormal = normal;
@@ -53,10 +54,10 @@ html(lang="eng")
 			varying vec4 colorsArr;
 
 			// lights
-			// varying highp vec3 vLighting;
+			varying highp vec3 vLighting;
 
 			void main() {
-				gl_FragColor = vec4(colorsArr);
+				gl_FragColor = vec4(colorsArr) ;
 			}
 
 		aside#sidebar
@@ -74,6 +75,7 @@ html(lang="eng")
 
 		div#container
 
+		div#axis-container
 
 		footer
 			script(src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js")

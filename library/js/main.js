@@ -6,23 +6,29 @@
 var animation = null,
 		container, 
 		renderer,
+		axisRenderer,
 		scene,
+		axisScene,
 		camera,
 		mesh,
 		sphere,
 		sphere2,
 		controls,
+		uniforms,
 		start = Date.now(),
 		dirLight,
 		ambientLight,
 		networkPoly = {},
-		fov = 30;
+		fov = 30,
+		frame = 0;
 
 function init() {
 
 	container = document.getElementById('container');
+	axisContainer = document.getElementById('axis-container');
 
 	scene = new THREE.Scene();
+	axisScene = new THREE.Scene();
 
 	// add camera
 	camera = new THREE.PerspectiveCamera(
@@ -39,7 +45,7 @@ function init() {
 		displacement : { type : 'f', value : [] },
 		attribColors : { type : 'v4', value : [] }
 	}
-	var uniforms =  THREE.UniformsUtils.merge([
+	uniforms =  THREE.UniformsUtils.merge([
 			THREE.UniformsLib[ 'lights' ],
 			{
 				'ambient'  		: { type: 'c', value: new THREE.Color( 0xffffff ) },
@@ -48,7 +54,6 @@ function init() {
 				'cameraPosX' 	: { type: 'f', value: 0.0 },
 				'cameraPosY' 	: { type: 'f', value: 0.0 },
 				'cameraPosZ' 	: { type: 'f', value: 0.0 },
-				'myColor'			: { type: 'c', value : new THREE.Color( 0xffccff ) }
 			}
 	]);
 
@@ -72,19 +77,97 @@ function init() {
 	for (var v = 0; v < vertices.length; v++) {
 		attributes.displacement.value.push( Math.random() * 30 );
 
+		var vSphere = new THREE.SphereGeometry(5, 32, 32);
+		var vMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+		var vMesh = new THREE.Mesh( vSphere, vMaterial );
+		vMesh.position.x = vertices[v].x;
+		vMesh.position.y = vertices[v].y;
+		vMesh.position.z = vertices[v].z;
+		scene.add(vMesh);
+
 		var red = Math.random();
 	  var green = Math.random();
 	  var blue = Math.random();
 	  var alpha = 1;
-	  attributes.attribColors.value.push(new THREE.Vector4( red, green, blue, alpha ));
+	  attributes.attribColors.value.push( new THREE.Vector4( red, green, blue, alpha ));
 	}
-
-	console.log(attributes.attribColors.value);
 
 	// update verices array
 	shaderMaterial.needsUpdate = true;
 
 	scene.add(sphere);
+
+	// add axis
+	var debugaxis = function(axisLength){
+    // Shorten the vertex function
+    function v(x,y,z){ 
+      return new THREE.Vector3(x,y,z); 
+    }
+    
+    // Create axis (point1, point2, colour)
+    function createAxis(p1, p2, color){
+      var line, lineGeometry = new THREE.Geometry(),
+      lineMat = new THREE.LineBasicMaterial({color: color, lineWidth: 1});
+      lineGeometry.vertices.push(p1, p2);
+      line = new THREE.Line(lineGeometry, lineMat);
+      axisScene.add(line);
+    }
+    
+    createAxis(v(-60, 0, 0), v(60, 0, 0), 0xFF0000); // R
+    createAxis(v(0, -axisLength, 0), v(0, axisLength, 0), 0x00FF00); // G
+    createAxis(v(0, 0, -axisLength), v(0, 0, axisLength), 0x0000FF); // B
+	};
+	// To use enter the axis length
+	debugaxis(50);
+
+	// labels
+	// sentiment
+	var label1Canvas = document.createElement('canvas');
+	var label1Context = label1Canvas.getContext('2d');
+	label1Context.font = '13px Helvetica';
+	label1Context.fillStyle = 'rgba(255, 0, 0, 1)';
+	label1Context.fillText('sentiment', 170, 69);
+	var label1Texture = new THREE.Texture(label1Canvas);
+	label1Texture.needsUpdate = true;
+	var label1Material = new THREE.MeshBasicMaterial({ map: label1Texture, side: THREE.DoubleSide });
+	label1Material.transparent = true;
+	var mesh1 = new THREE.Mesh( new THREE.PlaneGeometry(label1Canvas.width, label1Canvas.height), label1Material);
+	mesh1.position.set(0, 0, 0);
+	axisScene.add(mesh1);
+
+	// age
+	var label2Canvas = document.createElement('canvas');
+	var label2Context = label1Canvas.getContext('2d');
+	label2Context.font = '13px Helvetica';
+	label2Context.fillStyle = 'rgba(0, 255, 0, 1)';
+	label2Context.fillText('influence', 120, 23);
+	var label2Texture = new THREE.Texture(label2Canvas);
+	label2Texture.needsUpdate = true;
+	var label2Material = new THREE.MeshBasicMaterial({ map: label2Texture, side: THREE.DoubleSide });
+	label2Material.transparent = true;
+	var mesh2 = new THREE.Mesh( new THREE.PlaneGeometry(label2Canvas.width, label2Canvas.height), label2Material);
+	mesh2.position.set(0, 0, 0);
+	axisScene.add(mesh2);
+
+	// sentiment
+	var label3Canvas = document.createElement('canvas');
+	var label3Context = label3Canvas.getContext('2d');
+	label3Context.font = '13px Helvetica';
+	label3Context.fillStyle = 'rgba(0, 0, 255, 1)';
+	label3Context.fillText('age', 100, 69);
+	var label3Texture = new THREE.Texture(label3Canvas);
+	label3Texture.needsUpdate = true;
+	var label3Material = new THREE.MeshBasicMaterial({ map: label3Texture, side: THREE.DoubleSide });
+	label3Material.transparent = true;
+	var mesh3 = new THREE.Mesh( new THREE.PlaneGeometry(label3Canvas.width, label3Canvas.height), label3Material);
+	mesh3.position.set(0, 0, 0);
+
+	var parent = new THREE.Object3D();
+	mesh3.applyMatrix( new THREE.Matrix4().makeRotationY( Math.PI ));
+	parent.add(mesh3);
+	parent.rotation.y = Math.PI/2;
+	parent.position.set(0, 0, 0);
+	axisScene.add(parent)
 
 	//mouse control
 	controls = new THREE.TrackballControls(camera, container);
@@ -96,14 +179,29 @@ function init() {
 		uniforms.cameraPosZ.value = camera.position.z/50;
 	});
 
-	// renderer
-	renderer = new THREE.WebGLRenderer();
+	// renderer 1
+	renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
 	renderer.setSize( container.offsetWidth, container.offsetHeight );
 	renderer.setClearColor(0x00000a, 1); 
 	container.appendChild( renderer.domElement ); 
+
+	// axis renderer
+	axisRenderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+	axisRenderer.setSize( 100, 100 );
+	axisRenderer.setClearColor( 0xffffff, 1); 
+	axisContainer.appendChild( axisRenderer.domElement ); 
 };
 
 function animate() {
+
+	if(typeof uniforms.age_amplitude !== 'undefined') {
+		
+		if(uniforms.age_amplitude.value > -1) {
+			uniforms.age_amplitude.value = uniforms.age_amplitude.value - frame;
+		}
+		frame += 0.0001;
+	}
+
 	animation = requestAnimationFrame( animate );
 	controls.update();
 	render();
@@ -111,6 +209,7 @@ function animate() {
 
 function render() {
 	renderer.render( scene, camera );
+	axisRenderer.render( axisScene, camera )
 }
 
 function augmentIcosaResolution(self, dataLength, radius, currentRes) {
@@ -125,7 +224,7 @@ function augmentIcosaResolution(self, dataLength, radius, currentRes) {
 	}
 }
 
-function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDistribute, displacementVal) {
+function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDistribute, displacementVal, colorsVal) {
 	var totalVerticesLength = networkPolygonVerticesArray.length,
 			totalDataLength = tweetsData.length,
 			totalData = 0,
@@ -133,7 +232,8 @@ function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDist
 			verticesReminder = 0,
 			distibutedData = [],
 			distibutedDataTotal = 0,
-			changeArr = false;
+			changeArr = false,
+			vertexColor;
 
 	if(totalDataLength > totalVerticesLength) {
 		console.log('Error => Data exceed available space');
@@ -189,11 +289,7 @@ function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDist
 
 	verticesReminder = totalVerticesLength % distibutedDataTotal;
 
-	// console.log('total networkPoly vertices =>' + totalVerticesLength + ' distributed data total=> ' + distibutedDataTotal);
-	// console.log('Total data length =>' + totalData);
-	// console.log('dataToVerticesRatio =>' + dataToVerticesRatio);
-	console.log('distibutedData =>' + distibutedData);
-	console.log('verticesReminder =>' + verticesReminder);
+	var twitterDataCount = distibutedData.length;
 
 	// add inbetweeners (= modulo) to distributeData array
 	for(var aa = 0; aa < totalVerticesLength; aa++) {
@@ -206,25 +302,53 @@ function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDist
 	for(var yy = 0, dataLoopCounter = 0, tweetCounter = 0; yy < totalVerticesLength; yy++) {
 		
 		if(distibutedData[yy] !== 'pass') {
+
 			for(var xx = 0; xx < distibutedData[dataLoopCounter]; xx++) {
-				console.log('in use');
 				networkPolygonVerticesArray[yy].x = networkPolygonVerticesArray[yy].x + tweetsData[tweetCounter]['sentiment'];
 				networkPolygonVerticesArray[yy].y = networkPolygonVerticesArray[yy].y + tweetsData[tweetCounter]['influence'];
 				networkPolygonVerticesArray[yy].z = networkPolygonVerticesArray[yy].z + tweetsData[tweetCounter]['age'];
 				networkPolygonVerticesArray[yy].status = 'in use';
+
+				// get vertext color based on sentiment value
+				switch(true) {
+					case tweetsData[tweetCounter]['sentimentString'] == 'positive': 
+						// vertexColor = new THREE.Vector4( 1.0, 0.0, 0.0, 1.0 ); // RGBA red
+						vertexColor = new THREE.Vector4( Math.random(), Math.random(), Math.random(), 1.0 );
+						break;
+					case tweetsData[tweetCounter]['sentimentString'] == 'neutral': 
+						// vertexColor = new THREE.Vector4( 1.0, 1.0, 1.0, 1.0 ); // RGBA white
+						vertexColor = new THREE.Vector4( Math.random(), Math.random(), Math.random(), 1.0 );
+						break;
+						break;
+					case tweetsData[tweetCounter]['sentimentString'] == 'negative': 
+						// vertexColor = new THREE.Vector4( 0.0, 0.0, 1.0, 1.0 ); // RGBA blue
+						vertexColor = new THREE.Vector4( Math.random(), Math.random(), Math.random(), 1.0 );
+						break;
+						break;
+					default:
+						// vertexColor = new THREE.Vector4( 0.8, 1.0, 1.0, 1.0 ); // RGBA white
+						vertexColor = new THREE.Vector4( Math.random(), Math.random(), Math.random(), 1.0 );
+						break;
+				}
+					
 				if(distibutedData[dataLoopCounter] > 1 && xx < distibutedData[dataLoopCounter] - 1 && yy < totalVerticesLength - 1) {
 					yy++;
 				}		
-				displacementVal.push( Math.random() * 2 );		
+
+				// populate attributes obj
+				displacementVal.push( 1 );
+				colorsVal.push(vertexColor);	
 			}
-			if(dataLoopCounter < distibutedData.length - 1) {
+
+			if(dataLoopCounter < distibutedData.length - 1 && dataLoopCounter < totalVerticesLength - 1) {
 				dataLoopCounter++;
 			}
-			if(tweetCounter < distibutedDataTotal - 1) {
+
+			if(tweetCounter < twitterDataCount) {
 				tweetCounter++;
 			}
+
 		} else {
-			console.log('empty');
 			networkPolygonVerticesArray[yy].x = networkPolygonVerticesArray[yy].x + ((tweetsData[tweetCounter-1]['sentiment'] + tweetsData[tweetCounter + 1]['sentiment'])/2);
 			networkPolygonVerticesArray[yy].y = networkPolygonVerticesArray[yy].y + ((tweetsData[tweetCounter-1]['influence'] + tweetsData[tweetCounter + 1]['influence'])/2);
 			networkPolygonVerticesArray[yy].z = networkPolygonVerticesArray[yy].z + ((tweetsData[tweetCounter-1]['age'] + tweetsData[tweetCounter + 1]['age'])/2);
@@ -232,41 +356,16 @@ function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDist
 			if(dataLoopCounter < distibutedData.length - 1) {
 				dataLoopCounter++;
 			}
-			displacementVal.push( Math.random() * 2 );
+			displacementVal.push( 1 );
+			colorsVal.push(new THREE.Vector4( 1.0, Math.random(), 1.0, 1.0 ));
 		}
 	}
-	return networkPolygonVerticesArray, displacementVal;
+
+	return networkPolygonVerticesArray, displacementVal, colorsVal;
 }
 
-function addStreamedData(tweetObjArray, newTweet, radius, currentRes) {
-	var addedData = false;
-	for(var ii = 0; ii < tweetObjArray.length; ii++) {
-		if(tweetObjArray[ii].status == 'empty') {
-			tweetObjArray[ii].x = newTweet['sentiment'];
-			tweetObjArray[ii].y = newTweet['influence'];
-			tweetObjArray[ii].z = newTweet['age'];
-			tweetObjArray[ii].status = 'in use'; 
-			addedData = true;
-			console.log('Added Data to Poly');
-			break;
-		}	
-	} 
+function addSphereOnvertices(vertices, radiusData) {
 
-	if(addedData == false) {
-		currentRes++;
-		var augemntedPoly = new THREE.IcosahedronGeometry(radius, currentRes);
-
-		for(var ll = 0; ll < augemntedPoly.vertices; ll++) {
-			if(augemntedPoly.vertices[ll].status == 'empty' || augemntedPoly.vertices[ll].status == 'undefined') {
-				augemntedPoly.vertices[ll].x = newTweet['sentiment'];
-				augemntedPoly.vertices[ll].y = newTweet['influence'];
-				augemntedPoly.vertices[ll].z = newTweet['age'];
-				augemntedPoly.vertices[ll].status = 'in use';
-				console.log('Created new Poly'); 
-				break;
-			}	
-		}
-	}
 }
 
 init();
@@ -287,27 +386,26 @@ SOCKET.on('query-init-response', function(response) {
 	
 	// displace vertices
 	var attributes = {
-		displacement: { type : 'f', value : [] }
+		displacement 	: { type : 'f', value : [] },
+		attribColors 	: { type : 'v4', value : [] }
 	}
 	
 	// displacement array 
-	var displacementValues = attributes.displacement.value;
+	var displacementValues 	= attributes.displacement.value;
+	var colorValues 				= attributes.attribColors.value;
 	
-	distributeVertices(networkPoly.vertices, response, 'influence', displacementValues);
+	distributeVertices(networkPoly.vertices, response, 'influence', displacementValues, colorValues);
 
-	console.log('vertices data => ');
-	console.log(networkPoly.vertices);
-
-	var uniforms =  THREE.UniformsUtils.merge([
+	uniforms =  THREE.UniformsUtils.merge([
 			THREE.UniformsLib[ 'lights' ],
 			{
-				'ambient'  				: { type: 'c', value: new THREE.Color( 0xffffff ) },
-				'emissive' 				: { type: 'c', value: new THREE.Color( 0xffffff ) },
+				'ambient'  				: { type: 'c',  value: new THREE.Color( 0xffffff ) },
+				'emissive' 				: { type: 'c',  value: new THREE.Color( 0xffffff ) },
 				'wrapRGB'  				: { type: 'v3', value: new THREE.Vector3( 1, 1, 1 ) },
-				'cameraPosX' 			: { type: 'f', value: 0.2 },
-				'cameraPosY' 			: { type: 'f', value: 0.2 },
-				'cameraPosZ' 			: { type: 'f', value: 0.2 },
-				'myColor'					: { type : 'c', value : new THREE.Color( 0xffccff ) },
+				'cameraPosX' 			: { type: 'f',  value: 0.2 },
+				'cameraPosY' 			: { type: 'f',  value: 0.2 },
+				'cameraPosZ' 			: { type: 'f',  value: 0.2 },
+				'age_amplitude'		: { type: 'f',  value: 0 }
 			}
 	]);
 
@@ -317,20 +415,20 @@ SOCKET.on('query-init-response', function(response) {
 		vertexShader		: document.getElementById('vertexShader').textContent,
 		fragmentShader	: document.getElementById('fragmentShader').textContent,
 		lights					: true
-		// wireframe				: true,
-		// wireframeLinewidth : 5
 	});
+
+	var wireframeMateial = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: true, wireframeLinewidth: 3 } );
 
 	networkPoly.computeFaceNormals();
 	networkPoly.computeVertexNormals();
-	networkPoly.verticesNeedUpdate = true;
-	networkPoly.elementsNeedUpdate = true;
-	shaderMaterial.side = THREE.DoubleSide;
-	shaderMaterial.needsUpdate = true;
+	networkPoly.verticesNeedUpdate 			= true;
+	networkPoly.elementsNeedUpdate 			= true;
+	shaderMaterial.side 								= THREE.DoubleSide;
+	shaderMaterial.needsUpdate 					= true;
 	attributes.displacement.needsUpdate = true;
 
 	// add geometry to scene
-	sphere2 = new THREE.Mesh( networkPoly, shaderMaterial );
+	sphere2 = THREE.SceneUtils.createMultiMaterialObject( networkPoly, [ shaderMaterial, wireframeMateial] );
 	scene.add(sphere2);
 
 	controls.addEventListener( 'change', function() {
@@ -347,41 +445,38 @@ SOCKET.on('query-init-response', function(response) {
 * AUGMENT NETWORK GRAPH WITH STREAMING DATA
 */
 SOCKET.on('streaming-response', function(response) {
-	// augment vertices array
-	// see: http://stackoverflow.com/questions/24531109/three-js-vertices-does-not-update
 	
-	var radius = 30,
-			resolution = 0;
+	var radius 			= 30,
+			resolution 	= 0;
 
 	// case 1: response.length <= networkPoly.vertices.length
 	if(response.length <= networkPoly.vertices.length) {
+
 		// distribute vertices of updated data objects array
 		var attributes = {
-			displacement: { type : 'f', value : [] }
+			displacement : { type : 'f',  value : [] },
+			attribColors : { type : 'v4', value : [] }
 		}
-		var displacementValues = attributes.displacement.value;
-		distributeVertices(networkPoly.vertices, response, 'influence', displacementValues);
-		console.log('networkPoly = ');
-		console.log(networkPoly.vertices);
+		var displacementValues 	= attributes.displacement.value;
+		var colorValues 				= attributes.attribColors.value;
+		distributeVertices(networkPoly.vertices, response, 'influence', displacementValues, colorValues);
 
 		// update geometry
 		networkPoly.computeFaceNormals();
 		networkPoly.computeVertexNormals();
-		networkPoly.verticesNeedUpdate = true;
-		networkPoly.elementsNeedUpdate = true;
+		networkPoly.verticesNeedUpdate 			= true;
+		networkPoly.elementsNeedUpdate 			= true;
 		attributes.displacement.needsUpdate = true;
+
 	} else {
 		console.log('We need to updated the geometry resolution');
 		scene.remove(sphere2);
 	}
+
+	SOCKET.on('query-stopped', function() {
+		scene.remove(sphere2);
+		// reset camera + axis
+	});
 	
-
-	// 1a) if response.length > networkPoly.vertices.length => augment geometry
-	// 1b) else skip this step
-
-	// 2a) map data to new geometry
-	// 2b) add new data to existing empty slots ??? how do we sort geometry so that it makes sense?
-
-	// 3) display geometry
 
 });
