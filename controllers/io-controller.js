@@ -151,14 +151,14 @@ var streamData = function(server) {
 	});
 
 	SOCKET.on('reset-query', function() {
-		t.currentTwitStream.destroy();
-		SOCKET.removeAllListeners('query-init-completed');
-		SOCKET.removeAllListeners('query-init-response');
-		SOCKET.removeAllListeners('streaming-response');
-		SOCKET.emit('query-stopped');
+
+		if(t.currentTwitStream !== undefined) {
+			t.currentTwitStream.destroy();
+			SOCKET.removeAllListeners('streaming-response');
+			SOCKET.emit('query-stopped');
+		}
 	});
 }
-
 
 // python settings
 var pySettings = {

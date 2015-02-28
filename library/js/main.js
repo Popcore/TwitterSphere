@@ -199,7 +199,7 @@ function animate() {
 		if(uniforms.age_amplitude.value > -1) {
 			uniforms.age_amplitude.value = uniforms.age_amplitude.value - frame;
 		}
-		frame += 0.0001;
+		frame += 0.0005;
 	}
 
 	animation = requestAnimationFrame( animate );
@@ -417,7 +417,7 @@ SOCKET.on('query-init-response', function(response) {
 		lights					: true
 	});
 
-	var wireframeMateial = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: true, wireframeLinewidth: 3 } );
+	var wireframeMateial = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: true, wireframeLinewidth: 1.5 } );
 
 	networkPoly.computeFaceNormals();
 	networkPoly.computeVertexNormals();
@@ -474,6 +474,7 @@ SOCKET.on('streaming-response', function(response) {
 	}
 
 	SOCKET.on('query-stopped', function() {
+		console.log('stop query');
 		scene.remove(sphere2);
 		// reset camera + axis
 	});

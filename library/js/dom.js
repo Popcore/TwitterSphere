@@ -33,7 +33,7 @@ var Query = (function() {
 ***/
 jQuery(document).ready(function($) {
 
-	//Query.resetQuery();
+	Query.resetQuery();
 
 	var submitButton 	= $('input#start-query');
 	// display submit button if form has values
@@ -60,8 +60,6 @@ jQuery(document).ready(function($) {
 			Query.resetQuery();
 		} else {
 
-			console.log('submit query');
-			
 			// init query
 			var queryVars = {
 				queryKeyword  : $('input#keyword').val().toLowerCase(),
