@@ -79,11 +79,11 @@ function init() {
 
 		var vSphere 		 = new THREE.SphereGeometry(5, 32, 32);
 		var vMaterial 	 = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-		vMesh 			 		 = new THREE.Mesh( vSphere, vMaterial );
+		var vMesh 			 = new THREE.Mesh( vSphere, vMaterial );
 		vMesh.position.x = vertices[v].x;
 		vMesh.position.y = vertices[v].y;
 		vMesh.position.z = vertices[v].z;
-		vMesh.name 		 		= 'vMesh' + v;
+		vMesh.name 		 	 = 'vMesh' + v;
 		vMeshParent.add(vMesh);
 
 		attributes.displacement.value.push( Math.random() * 30 );
@@ -308,10 +308,12 @@ function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDist
 		if(distibutedData[yy] !== 'pass') {
 
 			for(var xx = 0; xx < distibutedData[dataLoopCounter]; xx++) {
-				networkPolygonVerticesArray[yy].x = networkPolygonVerticesArray[yy].x + tweetsData[tweetCounter]['sentiment'];
-				networkPolygonVerticesArray[yy].y = networkPolygonVerticesArray[yy].y + tweetsData[tweetCounter]['influence'];
-				networkPolygonVerticesArray[yy].z = networkPolygonVerticesArray[yy].z + tweetsData[tweetCounter]['age'];
-				networkPolygonVerticesArray[yy].status = 'in use';
+				networkPolygonVerticesArray[yy].x 			 = networkPolygonVerticesArray[yy].x + tweetsData[tweetCounter]['sentiment'];
+				networkPolygonVerticesArray[yy].y 			 = networkPolygonVerticesArray[yy].y + tweetsData[tweetCounter]['influence'];
+				networkPolygonVerticesArray[yy].z 			 = networkPolygonVerticesArray[yy].z + tweetsData[tweetCounter]['age'];
+				networkPolygonVerticesArray[yy].status 	 = 'in use';
+				networkPolygonVerticesArray[yy].parentID = tweetCounter;
+
 
 				// get vertext color based on sentiment value
 				switch(true) {
@@ -372,23 +374,28 @@ function addSphereOnVertex(verticesArray, radiusDataArray) {
 
 	scene.remove(vMeshParent);
 
+	console.log('vertices length =>'  + verticesArray.length);
+	console.log(verticesArray);
+	console.log('data length => ' + radiusDataArray.length);
+
 	vMeshParent = new THREE.Object3D();
 
 	for(var ii = 0; ii < verticesArray.length; ii++) {
-
-		/*
-		if(vMesh.name = 'vMesh' + ii) {
-			console.log(vMesh['vMesh' + ii]);
-			scene.remove('vMesh' + ii);
+		
+		if(verticesArray[ii].parentID !== 'undefined') {
+			var parentId = verticesArray[ii].parentID;
+			var vSphereRadius = radiusDataArray[parentId]['audience'] / 1000;
+			//var vSphereRadius = 3;
+		} else {
+			var vSphereRadius = 3;
 		}
-		*/
-		var vSphere 		 = new THREE.SphereGeometry(5, 32, 32);
-		var vMaterial 	 = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-		vMesh 			 		 = new THREE.Mesh( vSphere, vMaterial );
-		vMesh.position.x = verticesArray[ii].x;
-		vMesh.position.y = verticesArray[ii].y;
-		vMesh.position.z = verticesArray[ii].z;
-		vMesh.name 		 	 = 'vMesh' + ii;
+		var vSphere 		  = new THREE.SphereGeometry(vSphereRadius, 32, 32);
+		var vMaterial 	  = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+		vMesh 			 		  = new THREE.Mesh( vSphere, vMaterial );
+		vMesh.position.x  = verticesArray[ii].x;
+		vMesh.position.y  = verticesArray[ii].y;
+		vMesh.position.z  = verticesArray[ii].z;
+		vMesh.name 		 	  = 'vMesh' + ii;
 		vMeshParent.add(vMesh);
 	}
 
@@ -422,7 +429,7 @@ SOCKET.on('query-init-response', function(response) {
 	var colorValues 				= attributes.attribColors.value;
 	
 	distributeVertices(networkPoly.vertices, response, 'influence', displacementValues, colorValues);
-	addSphereOnVertex(networkPoly.vertices);
+	addSphereOnVertex(networkPoly.vertices, response);
 
 	uniforms =  THREE.UniformsUtils.merge([
 			THREE.UniformsLib[ 'lights' ],
@@ -491,7 +498,7 @@ SOCKET.on('streaming-response', function(response) {
 		var displacementValues 	= attributes.displacement.value;
 		var colorValues 				= attributes.attribColors.value;
 		distributeVertices(networkPoly.vertices, response, 'influence', displacementValues, colorValues);
-		addSphereOnVertex(networkPoly.vertices);
+		addSphereOnVertex(networkPoly.vertices, response);
 
 		// update geometry
 		networkPoly.computeFaceNormals();
@@ -508,6 +515,7 @@ SOCKET.on('streaming-response', function(response) {
 	SOCKET.on('query-stopped', function() {
 		console.log('stop query');
 		scene.remove(sphere2);
+		scene.remove(vMeshParent);
 		// reset camera + axis
 	});
 	
