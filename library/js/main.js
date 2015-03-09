@@ -5,6 +5,8 @@
 
 var animation = null,
 		container, 
+		sidebar,
+		headerElem,
 		renderer,
 		axisRenderer,
 		scene,
@@ -15,6 +17,10 @@ var animation = null,
 		sphere,
 		sphere2,
 		controls,
+		projector,
+		mouse = new THREE.Vector2(),
+		raycaster = new THREE.Raycaster(),
+		INTERSECTED,
 		uniforms,
 		start = Date.now(),
 		dirLight,
@@ -27,6 +33,8 @@ function init() {
 
 	container 		= document.getElementById('container');
 	axisContainer = document.getElementById('axis-container');
+	sidebar       = document.getElementById('sidebar');
+	headerElem	  = document.getElementById('top-header');
 	scene 				= new THREE.Scene();
 	axisScene 		= new THREE.Scene();
 	camera 				= new THREE.PerspectiveCamera(
@@ -36,9 +44,19 @@ function init() {
 		10000 );
 	camera.position.z = 300;
 	camera.target = new THREE.Vector3(0, 0, 0);
-
 	scene.add(camera);
 
+	//mouse control
+	controls = new THREE.TrackballControls(camera, container);
+	controls.addEventListener( 'change', render );
+
+	controls.addEventListener( 'change', function() {
+		uniforms.cameraPosX.value = camera.position.x/50;
+		uniforms.cameraPosY.value = camera.position.y/20;
+		uniforms.cameraPosZ.value = camera.position.z/50;
+	});
+
+	// shader
 	var attributes = {
 		displacement : { type : 'f', value : [] },
 		attribColors : { type : 'v4', value : [] }
@@ -63,7 +81,7 @@ function init() {
 		lights					: true,
 	});
 
-	// add sphere
+	// sphere 1
 	sphere = new THREE.Mesh( new THREE.IcosahedronGeometry(20, 0), shaderMaterial );
 
 	sphere.geometry.dynamic = true;
@@ -124,8 +142,7 @@ function init() {
 	// To use enter the axis length
 	debugaxis(50);
 
-	// labels
-	// sentiment
+	// sentiment label
 	var label1Canvas 				= document.createElement('canvas');
 	var label1Context 			= label1Canvas.getContext('2d');
 	label1Context.font 			= '13px Helvetica';
@@ -139,7 +156,7 @@ function init() {
 	mesh1.position.set(0, 0, 0);
 	axisScene.add(mesh1);
 
-	// age
+	// influence label
 	var label2Canvas 				= document.createElement('canvas');
 	var label2Context 			= label1Canvas.getContext('2d');
 	label2Context.font 			= '13px Helvetica';
@@ -153,7 +170,7 @@ function init() {
 	mesh2.position.set(0, 0, 0);
 	axisScene.add(mesh2);
 
-	// sentiment
+	// age label
 	var label3Canvas 				= document.createElement('canvas');
 	var label3Context 			= label3Canvas.getContext('2d');
 	label3Context.font 			= '13px Helvetica';
@@ -173,18 +190,13 @@ function init() {
 	parent.position.set(0, 0, 0);
 	axisScene.add(parent)
 
-	//mouse control
-	controls = new THREE.TrackballControls(camera, container);
-	controls.addEventListener( 'change', render );
-
-	controls.addEventListener( 'change', function() {
-		uniforms.cameraPosX.value = camera.position.x/50;
-		uniforms.cameraPosY.value = camera.position.y/20;
-		uniforms.cameraPosZ.value = camera.position.z/50;
-	});
+	// track mouse position
+	projector = new THREE.Projector();
+	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
 	// renderer 1
-	renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+	renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+	//renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( container.offsetWidth, container.offsetHeight );
 	renderer.setClearColor(0x00000a, 1); 
 	container.appendChild( renderer.domElement ); 
@@ -195,6 +207,12 @@ function init() {
 	axisRenderer.setClearColor( 0xffffff, 1); 
 	axisContainer.appendChild( axisRenderer.domElement ); 
 };
+
+function onDocumentMouseMove(event) {
+	mouse.x = ( (event.clientX - 281) / container.offsetWidth) * 2 - 1;
+	mouse.y = - ( event.clientY / container.offsetHeight ) * 2 + 1;
+	//console.log(event.clientX + sidebar.offsetWidth);
+} 
 
 function animate() {
 
@@ -209,11 +227,41 @@ function animate() {
 	animation = requestAnimationFrame( animate );
 	controls.update();
 	render();
+	update();
 }
 
 function render() {
 	renderer.render( scene, camera );
 	axisRenderer.render( axisScene, camera )
+}
+
+function update() {
+	var vector = new THREE.Vector3( mouse.x, mouse.y, 1);
+	projector.unprojectVector( vector, camera );
+	raycaster.set( camera.position, vector.sub(camera.position).normalize() );
+
+	// create array of objects with whcih the ray intersects
+	var intersects = raycaster.intersectObjects( scene.children ); 
+
+	// INTERSECTED = the object closest to the cameraand intersected by 
+	// the ray projected from the mouse position
+	if(intersects.length > 0) {
+		console.log('intersect');
+		if(intersects[0].object != INTERSECTED) {
+			if(INTERSECTED) {
+				// INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
+			}
+			INTERSECTED = intersects[0].object;
+			// INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
+			// INTERSECTED.material.color.setHex(0xff0000);
+		}
+	} else {
+		//console.log('no intersect');
+		if(INTERSECTED) {
+			//INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
+		}
+		INTERSECTED = null;
+	}
 }
 
 function augmentIcosaResolution(self, dataLength, radius, currentRes) {
