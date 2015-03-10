@@ -192,7 +192,8 @@ function init() {
 
 	// track mouse position
 	projector = new THREE.Projector();
-	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+	window.onload = document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
 
 	// renderer 1
 	renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -209,15 +210,15 @@ function init() {
 };
 
 function onDocumentMouseMove(event) {
-	mouse.x = ( (event.clientX - 281) / container.offsetWidth) * 2 - 1;
-	mouse.y = - ( event.clientY / container.offsetHeight ) * 2 + 1;
+	var sidebarWidth  = sidebar.offsetWidth;
+	var headerHeight  = headerElem.offsetHeight;
+	mouse.x = ( (event.clientX - sidebarWidth) / container.offsetWidth) * 2 - 1;
+	mouse.y = - ( (event.clientY - headerHeight) / container.offsetHeight ) * 2 + 1;
 	//console.log(event.clientX + sidebar.offsetWidth);
 } 
 
 function animate() {
-
 	if(typeof uniforms.age_amplitude !== 'undefined') {
-		
 		if(uniforms.age_amplitude.value > -1) {
 			uniforms.age_amplitude.value = uniforms.age_amplitude.value - frame;
 		}
