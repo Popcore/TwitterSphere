@@ -5,9 +5,10 @@ TO DO LIST:
 3) clean up js
 4) add form to build query
 5) add colours
-6) add realtime streaming + save age to database (CRUD operations)
-7) add axis lines with meaning
+6) add realtime streaming + save age to database (CRUD operations) ?
 8) add labels
+9) RESET: on stop -> reset -> restart query 3d obj doesn't rebuild but startfrom last state
+10) RESET: not working if there is less than two tweets (it works only when streaming)
 
 
 BUGS 

@@ -1,8 +1,3 @@
-// 2.1 => render scene
-// IMPORTANT: render scene 
-//							opt 1) after tweetData array has been populated
-//							opt 2) render something on page load and update scene when tweetData array is ready
-
 var animation = null,
 		container, 
 		sidebar,
@@ -15,6 +10,8 @@ var animation = null,
 		mesh,
 		vMeshParent,
 		sphere,
+		// set true to enable raycaster for mouse over objs
+		mouseInteraction = false,
 		sphere2,
 		controls,
 		projector,
@@ -83,7 +80,6 @@ function init() {
 
 	// sphere 1
 	sphere = new THREE.Mesh( new THREE.IcosahedronGeometry(20, 0), shaderMaterial );
-
 	sphere.geometry.dynamic = true;
 	
 	// populate array of attributes
@@ -92,7 +88,7 @@ function init() {
 
 	vMeshParent = new THREE.Object3D();
 
-	// vartices color
+	// vertices color
 	for (var v = 0; v < vertices.length; v++) {
 
 		var vSphere 		 = new THREE.SphereGeometry(5, 32, 32);
@@ -194,7 +190,6 @@ function init() {
 	projector = new THREE.Projector();
 	window.onload = document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
-
 	// renderer 1
 	renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 	//renderer.setPixelRatio( window.devicePixelRatio );
@@ -214,8 +209,14 @@ function onDocumentMouseMove(event) {
 	var headerHeight  = headerElem.offsetHeight;
 	mouse.x = ( (event.clientX - sidebarWidth) / container.offsetWidth) * 2 - 1;
 	mouse.y = - ( (event.clientY - headerHeight) / container.offsetHeight ) * 2 + 1;
-	//console.log(event.clientX + sidebar.offsetWidth);
+	mouse.realX = event.clientX;
+	mouse.realY = event.clientY;
 } 
+
+function render() {
+	renderer.render( scene, camera );
+	axisRenderer.render( axisScene, camera );
+}
 
 function animate() {
 	if(typeof uniforms.age_amplitude !== 'undefined') {
@@ -228,12 +229,10 @@ function animate() {
 	animation = requestAnimationFrame( animate );
 	controls.update();
 	render();
-	update();
-}
 
-function render() {
-	renderer.render( scene, camera );
-	axisRenderer.render( axisScene, camera )
+	if(mouseInteraction == true) {
+		update();
+	}
 }
 
 function update() {
@@ -241,30 +240,40 @@ function update() {
 	projector.unprojectVector( vector, camera );
 	raycaster.set( camera.position, vector.sub(camera.position).normalize() );
 
-	// create array of objects with whcih the ray intersects
-	var intersects = raycaster.intersectObjects( scene.children ); 
+	// create array of objects with which the ray intersects
+	var intersects = raycaster.intersectObjects( scene.children, true ); 
 
-	// INTERSECTED = the object closest to the cameraand intersected by 
+	// INTERSECTED = the object closest to the camera and intersected by 
 	// the ray projected from the mouse position
 	if(intersects.length > 0) {
-		console.log('intersect');
+		
 		if(intersects[0].object != INTERSECTED) {
 			if(INTERSECTED) {
-				// INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
+				console.log(INTERSECTED.material.color);
+				INTERSECTED.material.color.setHex(0xff0000);
 			}
 			INTERSECTED = intersects[0].object;
-			// INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
-			// INTERSECTED.material.color.setHex(0xff0000);
+			//INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
+			console.log(INTERSECTED.material);
+			INTERSECTED.material.color.setHex(0xff0000);
 		}
 	} else {
-		//console.log('no intersect');
 		if(INTERSECTED) {
-			//INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
+			INTERSECTED.material.color.setHex(0xff0000);
 		}
 		INTERSECTED = null;
 	}
 }
 
+/**
+* replace icosaedron obj with and icosaedron with hier resolution and more vertices
+* it is called when tweet data > geometry resolution
+*
+*	@param self       : THREEObj = the variable holding the icosaedron
+*	@param dataLength : Int = the data array length to compare the icosaedron vertices array against
+*	@param radius		  : Int = min icosaedron radius
+*	@param currentRes : Int = icosaedron current resolution
+**/
 function augmentIcosaResolution(self, dataLength, radius, currentRes) {
 
 	self = new THREE.IcosahedronGeometry(radius, currentRes);
@@ -355,8 +364,8 @@ function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDist
 	for(var yy = 0, dataLoopCounter = 0, tweetCounter = 0; yy < totalVerticesLength; yy++) {
 		
 		if(distibutedData[yy] !== 'pass') {
-
-			for(var xx = 0; xx < distibutedData[dataLoopCounter]; xx++) {
+			if(networkPolygonVerticesArray[yy] !== 'undefined' ) {
+				for(var xx = 0; xx < distibutedData[dataLoopCounter]; xx++) {
 				networkPolygonVerticesArray[yy].x 			 = networkPolygonVerticesArray[yy].x + tweetsData[tweetCounter]['sentiment'];
 				networkPolygonVerticesArray[yy].y 			 = networkPolygonVerticesArray[yy].y + tweetsData[tweetCounter]['influence'];
 				networkPolygonVerticesArray[yy].z 			 = networkPolygonVerticesArray[yy].z + tweetsData[tweetCounter]['age'];
@@ -364,35 +373,36 @@ function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDist
 				networkPolygonVerticesArray[yy].parentID = tweetCounter;
 
 
-				// get vertext color based on sentiment value
-				switch(true) {
-					case tweetsData[tweetCounter]['sentimentString'] == 'positive': 
-						// vertexColor = new THREE.Vector4( 1.0, 0.0, 0.0, 1.0 ); // RGBA red
-						vertexColor = new THREE.Vector4( Math.random(), Math.random(), Math.random(), 1.0 );
-						break;
-					case tweetsData[tweetCounter]['sentimentString'] == 'neutral': 
-						// vertexColor = new THREE.Vector4( 1.0, 1.0, 1.0, 1.0 ); // RGBA white
-						vertexColor = new THREE.Vector4( Math.random(), Math.random(), Math.random(), 1.0 );
-						break;
-						break;
-					case tweetsData[tweetCounter]['sentimentString'] == 'negative': 
-						// vertexColor = new THREE.Vector4( 0.0, 0.0, 1.0, 1.0 ); // RGBA blue
-						vertexColor = new THREE.Vector4( Math.random(), Math.random(), Math.random(), 1.0 );
-						break;
-						break;
-					default:
-						// vertexColor = new THREE.Vector4( 0.8, 1.0, 1.0, 1.0 ); // RGBA white
-						vertexColor = new THREE.Vector4( Math.random(), Math.random(), Math.random(), 1.0 );
-						break;
-				}
-					
-				if(distibutedData[dataLoopCounter] > 1 && xx < distibutedData[dataLoopCounter] - 1 && yy < totalVerticesLength - 1) {
-					yy++;
-				}		
+					// get vertext color based on sentiment value
+					switch(true) {
+						case tweetsData[tweetCounter]['sentimentString'] == 'positive': 
+							vertexColor = new THREE.Vector4( 1.0, 0.0, 0.0, 1.0 ); // RGBA red
+							//vertexColor = new THREE.Vector4( Math.random(), Math.random(), Math.random(), 1.0 );
+							break;
+						case tweetsData[tweetCounter]['sentimentString'] == 'neutral': 
+							vertexColor = new THREE.Vector4( 1.0, 1.0, 1.0, 1.0 ); // RGBA white
+							//vertexColor = new THREE.Vector4( Math.random(), Math.random(), Math.random(), 1.0 );
+							break;
+							break;
+						case tweetsData[tweetCounter]['sentimentString'] == 'negative': 
+							vertexColor = new THREE.Vector4( 0.0, 0.0, 1.0, 1.0 ); // RGBA blue
+							//vertexColor = new THREE.Vector4( Math.random(), Math.random(), Math.random(), 1.0 );
+							break;
+							break;
+						default:
+							vertexColor = new THREE.Vector4( 0.7, 1.0, 1.0, 1.0 ); // RGBA white
+							//vertexColor = new THREE.Vector4( Math.random(), Math.random(), Math.random(), 1.0 );
+							break;
+					}
+						
+					if(distibutedData[dataLoopCounter] > 1 && xx < distibutedData[dataLoopCounter] - 1 && yy < totalVerticesLength - 1) {
+						yy++;
+					}		
 
-				// populate attributes obj
-				displacementVal.push( 1 );
-				colorsVal.push(vertexColor);	
+					// populate attributes obj
+					displacementVal.push( 1 );
+					colorsVal.push(vertexColor);	
+				}
 			}
 
 			if(dataLoopCounter < distibutedData.length - 1 && dataLoopCounter < totalVerticesLength - 1) {
@@ -419,41 +429,59 @@ function distributeVertices(networkPolygonVerticesArray, tweetsData, valueToDist
 	return networkPolygonVerticesArray, displacementVal, colorsVal;
 }
 
-function addSphereOnVertex(verticesArray, radiusDataArray) {
+/**
+* places spheres on vertices with radius based on data array passed as args
+*
+*	@param verticesArray  : Array = the 3D Object vertices array
+*	@param radiusDataArray: Array = the data array that will determine the spehere radius
+*	@param minValue				: Int = min sphere radius
+*	@param maxValue 			: Int = max sphere radius
+**/
+function addSphereOnVertex(verticesArray, radiusDataArray, minValue, maxValue) {
+
+	var minRadius = minValue || 0.2,
+			maxRadius = maxValue || 5;
 
 	scene.remove(vMeshParent);
 
-	console.log('vertices length =>'  + verticesArray.length);
-	console.log(verticesArray);
-	console.log('data length => ' + radiusDataArray.length);
-
 	vMeshParent = new THREE.Object3D();
+	vMeshParent.name = 'Alfio';
 
 	for(var ii = 0; ii < verticesArray.length; ii++) {
 		
 		if(verticesArray[ii].parentID !== 'undefined') {
 			var parentId = verticesArray[ii].parentID;
 			var vSphereRadius = radiusDataArray[parentId]['audience'] / 1000;
-			//var vSphereRadius = 3;
+
+			if(vSphereRadius < minRadius) {
+				vSphereRadius = minRadius;
+			} else if(vSphereRadius > maxRadius) {
+				vSphereRadius = maxRadius;
+			}
 		} else {
-			var vSphereRadius = 3;
+			var vSphereRadius = 2;
 		}
-		var vSphere 		  = new THREE.SphereGeometry(vSphereRadius, 32, 32);
-		var vMaterial 	  = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+
+		var vSphere 		  = new THREE.SphereGeometry( vSphereRadius, 32, 32 );
+		var vMaterial 	  = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
 		vMesh 			 		  = new THREE.Mesh( vSphere, vMaterial );
 		vMesh.position.x  = verticesArray[ii].x;
 		vMesh.position.y  = verticesArray[ii].y;
 		vMesh.position.z  = verticesArray[ii].z;
 		vMesh.name 		 	  = 'vMesh' + ii;
+		vMesh.text 				= '';
+		vMesh.sentiment 	= '';
+		vMesh.audience 		= radiusDataArray[parentId]['audience'];
+		vMesh.age 				= '';
+		vMesh.user 				= '';
 		vMeshParent.add(vMesh);
 	}
-
 	scene.add(vMeshParent);
 }
 
 init();
 
-animate();
+window.onload = animate();
 
 /*
 * INIT NETWORK GRAPH
@@ -461,6 +489,11 @@ animate();
 SOCKET.on('query-init-response', function(response) {
 
 	scene.remove(sphere);
+
+	var updateG 		  	= new THREE.SphereGeometry(0.001, 5, 5);
+	var updateGMaterial = new THREE.MeshBasicMaterial( {color: 0xff5500} );
+	var updateG 			  = new THREE.Mesh( updateG, updateGMaterial );
+	scene.add(updateG);
 
 	// generate new geometry
 	var resolution = 0;
@@ -521,7 +554,8 @@ SOCKET.on('query-init-response', function(response) {
 		uniforms.cameraPosZ.value = camera.position.z/50;
 	});
 
-	render();
+	animate();
+	
 	SOCKET.emit('query-init-completed');
 });
 
@@ -558,7 +592,33 @@ SOCKET.on('streaming-response', function(response) {
 
 	} else {
 		console.log('We need to updated the geometry resolution');
-		scene.remove(sphere2);
+		
+		/*
+		// remove old geometry
+
+
+		// generate new geometry
+		var attributes = {
+			displacement : { type : 'f',  value : [] },
+			attribColors : { type : 'v4', value : [] }
+		}
+
+		// updated uniforms here
+		// age animation has to continue when streaming
+
+		var displacementValues 	= attributes.displacement.value;
+		var colorValues 				= attributes.attribColors.value;
+		networkPoly = augmentIcosaResolution(networkPoly, response.length, radius, resolution);
+		distributeVertices(networkPoly.vertices, response, 'influence', displacementValues, colorValues);
+		addSphereOnVertex(networkPoly.vertices, response);
+
+		// update geometry
+		networkPoly.computeFaceNormals();
+		networkPoly.computeVertexNormals();
+		networkPoly.verticesNeedUpdate 			= true;
+		networkPoly.elementsNeedUpdate 			= true;
+		attributes.displacement.needsUpdate = true;	
+		*/
 	}
 
 	SOCKET.on('query-stopped', function() {
@@ -567,6 +627,4 @@ SOCKET.on('streaming-response', function(response) {
 		scene.remove(vMeshParent);
 		// reset camera + axis
 	});
-	
-
 });

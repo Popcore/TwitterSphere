@@ -26,6 +26,8 @@ var streamData = function(server) {
 		this.queryData = data;
 		var keyword = this.queryData.queryKeyword;
 
+		console.log(keyword);
+
 		t.search(keyword, { 'count' : 15, 'lang' : 'en', 'result_type' : 'recent' }, function(data) { 
 
 			var dataArray = [],
@@ -54,10 +56,10 @@ var streamData = function(server) {
 
 				for (var j = 0; j < dataArray.length; j++) {
 					var obj = {};
-					obj['sentiment']	=	(dataArray[j]['tweet_sentiment_int'] * Math.random() * 10); 	// Pos X	
-					obj['age']				=	dataArray[j]['tweet_age'] / 3600;													// Pos Z
-					obj['audience']		=	dataArray[j]['user_followers'];														// Pos Y		
-					obj['retweet']		= dataArray[j]['tweet_popularity'];													// Surface (min 1)	
+					obj['sentiment']	=	(dataArray[j]['tweet_sentiment_int'] * Math.random() * 10); // Pos X	
+					obj['age']				=	dataArray[j]['tweet_age'] / 3600;														// Pos Z
+					obj['audience']		=	dataArray[j]['user_followers'];															// Pos Y		
+					obj['retweet']		= dataArray[j]['tweet_popularity'];														// Surface (min 1)	
 					obj['sentimentString']  = dataArray[j]['tweet_sentiment_str'];
 
 					dataToPass.push(obj);
@@ -68,8 +70,6 @@ var streamData = function(server) {
 
 				// map age to range
 				mappedData = helpers.mapToMaxData(0, 20, dataToPass, 'age');
-
-				// map age to range
 
 				// sort by audience
 				mappedData.sort(function(a, b) {
@@ -125,9 +125,9 @@ var streamData = function(server) {
 
 						// map data to range
 						processedTData.push(pyObj);
-						processedTData = helpers.mapToMaxData(-5, 5, processedTData, 'audience', 'influence');
-						processedTData = helpers.mapToMaxData(-5, 5, processedTData, 'sentiment');
-						processedTData = helpers.mapToMaxData(-5, 5, processedTData, 'age');
+						processedTData = helpers.mapToMaxData(-1, 1, processedTData, 'audience', 'influence');
+						processedTData = helpers.mapToMaxData(-1, 1, processedTData, 'sentiment');
+						processedTData = helpers.mapToMaxData(-1, 1, processedTData, 'age');
 						
 						// sort by audience
 
@@ -149,7 +149,7 @@ var streamData = function(server) {
 	});
 
 	SOCKET.on('reset-query', function() {
-
+		// destroy twitter stream
 		if(t.currentTwitStream !== undefined) {
 			t.currentTwitStream.destroy();
 			SOCKET.removeAllListeners('streaming-response');
@@ -182,7 +182,6 @@ module.exports = {
 
 			SOCKET = socket;
 			return SOCKET, streamData();
-
 		});
 	}
 }
