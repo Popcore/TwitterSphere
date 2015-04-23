@@ -9,7 +9,6 @@ var animation = null,
 		camera,
 		mesh,
 		vMeshParent,
-		sphere,
 		// set true to enable raycaster for mouse over objs
 		mouseInteraction = false,
 		sphere2,
@@ -44,151 +43,28 @@ function init() {
 	scene.add(camera);
 
 	//mouse control
-	controls = new THREE.TrackballControls(camera, container);
+	controls 		 = new THREE.TrackballControls(camera, container);
 	controls.addEventListener( 'change', render );
 
-	controls.addEventListener( 'change', function() {
-		uniforms.cameraPosX.value = camera.position.x/50;
-		uniforms.cameraPosY.value = camera.position.y/20;
-		uniforms.cameraPosZ.value = camera.position.z/50;
-	});
-
-	// shader
-	var attributes = {
-		displacement : { type : 'f', value : [] },
-		attribColors : { type : 'v4', value : [] }
-	}
-	uniforms 			 =  THREE.UniformsUtils.merge([
-			THREE.UniformsLib[ 'lights' ],
-			{
-				'ambient'  		: { type: 'c', value: new THREE.Color( 0xffffff ) },
-				'emissive' 		: { type: 'c', value: new THREE.Color( 0xffffff ) },
-				'wrapRGB'  		: { type: 'v3', value: new THREE.Vector3( 1, 1, 1 ) },
-				'cameraPosX' 	: { type: 'f', value: 0.0 },
-				'cameraPosY' 	: { type: 'f', value: 0.0 },
-				'cameraPosZ' 	: { type: 'f', value: 0.0 },
-			}
-	]);
-
-	var shaderMaterial = new THREE.ShaderMaterial({
-		attributes 			: attributes,
-		uniforms 				: uniforms,
-		vertexShader		: document.getElementById('vertexShader').textContent,
-		fragmentShader	: document.getElementById('fragmentShader').textContent,
-		lights					: true,
-	});
-
 	// sphere 1
-	sphere = new THREE.Mesh( new THREE.IcosahedronGeometry(20, 0), shaderMaterial );
-	sphere.geometry.dynamic = true;
-	
-	// populate array of attributes
-	var vertices 	= sphere.geometry.vertices;
-	var faces 		= sphere.geometry.faces;
-
-	vMeshParent = new THREE.Object3D();
-
-	// vertices color
-	for (var v = 0; v < vertices.length; v++) {
-
-		var vSphere 		 = new THREE.SphereGeometry(5, 32, 32);
-		var vMaterial 	 = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-		var vMesh 			 = new THREE.Mesh( vSphere, vMaterial );
-		vMesh.position.x = vertices[v].x;
-		vMesh.position.y = vertices[v].y;
-		vMesh.position.z = vertices[v].z;
-		vMesh.name 		 	 = 'vMesh' + v;
-		vMeshParent.add(vMesh);
-
-		attributes.displacement.value.push( Math.random() * 30 );
-		var red 	= Math.random();
-	  var green = Math.random();
-	  var blue 	= Math.random();
-	  var alpha = 1;
-	  attributes.attribColors.value.push( new THREE.Vector4( red, green, blue, alpha ));
-	}
-
-	scene.add(vMeshParent);
-
-	// update verices array
-	shaderMaterial.needsUpdate = true;
-
+	var geometry = new THREE.IcosahedronGeometry(20, 0);
+	var materal  = new THREE.MeshLambertMaterial(
+		{ color: 0xffffff, 
+			shading: THREE.FlatShading 
+		} 
+	);
+	var sphere   = new THREE.Mesh( geometry, materal );
+	//sphere.geometry.dynamic = true;
 	scene.add(sphere);
 
-	// add axis
-	var debugaxis = function(axisLength){
-    // Shorten the vertex function
-    function v(x,y,z){ 
-      return new THREE.Vector3(x,y,z); 
-    }
-    
-    // Create axis (point1, point2, colour)
-    function createAxis(p1, p2, color){
-      var line, lineGeometry = new THREE.Geometry(),
-      lineMat = new THREE.LineBasicMaterial({color: color, lineWidth: 1});
-      lineGeometry.vertices.push(p1, p2);
-      line = new THREE.Line(lineGeometry, lineMat);
-      axisScene.add(line);
-    }
-    
-    createAxis(v(-60, 0, 0), v(60, 0, 0), 0xFF0000); // R
-    createAxis(v(0, -axisLength, 0), v(0, axisLength, 0), 0x00FF00); // G
-    createAxis(v(0, 0, -axisLength), v(0, 0, axisLength), 0x0000FF); // B
-	};
-	// To use enter the axis length
-	debugaxis(50);
+	// light 
+	var light    = new THREE.AmbientLight( 0x404040 ); // soft white light
+	scene.add( light );
 
-	// sentiment label
-	var label1Canvas 				= document.createElement('canvas');
-	var label1Context 			= label1Canvas.getContext('2d');
-	label1Context.font 			= '13px Helvetica';
-	label1Context.fillStyle = 'rgba(255, 0, 0, 1)';
-	label1Context.fillText('sentiment', 170, 69);
-	var label1Texture 			= new THREE.Texture(label1Canvas);
-	label1Texture.needsUpdate = true;
-	var label1Material 			= new THREE.MeshBasicMaterial({ map: label1Texture, side: THREE.DoubleSide });
-	label1Material.transparent = true;
-	var mesh1 							= new THREE.Mesh( new THREE.PlaneGeometry(label1Canvas.width, label1Canvas.height), label1Material);
-	mesh1.position.set(0, 0, 0);
-	axisScene.add(mesh1);
-
-	// influence label
-	var label2Canvas 				= document.createElement('canvas');
-	var label2Context 			= label1Canvas.getContext('2d');
-	label2Context.font 			= '13px Helvetica';
-	label2Context.fillStyle = 'rgba(0, 255, 0, 1)';
-	label2Context.fillText('influence', 120, 23);
-	var label2Texture 			= new THREE.Texture(label2Canvas);
-	label2Texture.needsUpdate = true;
-	var label2Material 			= new THREE.MeshBasicMaterial({ map: label2Texture, side: THREE.DoubleSide });
-	label2Material.transparent = true;
-	var mesh2 							= new THREE.Mesh( new THREE.PlaneGeometry(label2Canvas.width, label2Canvas.height), label2Material);
-	mesh2.position.set(0, 0, 0);
-	axisScene.add(mesh2);
-
-	// age label
-	var label3Canvas 				= document.createElement('canvas');
-	var label3Context 			= label3Canvas.getContext('2d');
-	label3Context.font 			= '13px Helvetica';
-	label3Context.fillStyle = 'rgba(0, 0, 255, 1)';
-	label3Context.fillText('age', 100, 69);
-	var label3Texture 			= new THREE.Texture(label3Canvas);
-	label3Texture.needsUpdate = true;
-	var label3Material 			= new THREE.MeshBasicMaterial({ map: label3Texture, side: THREE.DoubleSide });
-	label3Material.transparent = true;
-	var mesh3 							= new THREE.Mesh( new THREE.PlaneGeometry(label3Canvas.width, label3Canvas.height), label3Material);
-	mesh3.position.set(0, 0, 0);
-
-	var parent 							= new THREE.Object3D();
-	mesh3.applyMatrix( new THREE.Matrix4().makeRotationY( Math.PI ));
-	parent.add(mesh3);
-	parent.rotation.y 			= Math.PI/2;
-	parent.position.set(0, 0, 0);
-	axisScene.add(parent)
-
-	// track mouse position
-	projector = new THREE.Projector();
-	window.onload = document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+	var directionalLight = new THREE.DirectionalLight(0xffffff);
+      directionalLight.position.set(1, -1, 1).normalize();
+      scene.add(directionalLight);
+ 
 
 	// renderer 1
 	renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -197,11 +73,6 @@ function init() {
 	renderer.setClearColor(0x00000a, 1); 
 	container.appendChild( renderer.domElement ); 
 
-	// axis renderer
-	axisRenderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
-	axisRenderer.setSize( 100, 100 );
-	axisRenderer.setClearColor( 0xffffff, 1); 
-	axisContainer.appendChild( axisRenderer.domElement ); 
 };
 
 function onDocumentMouseMove(event) {
@@ -215,24 +86,14 @@ function onDocumentMouseMove(event) {
 
 function render() {
 	renderer.render( scene, camera );
-	axisRenderer.render( axisScene, camera );
 }
 
 function animate() {
-	if(typeof uniforms.age_amplitude !== 'undefined') {
-		if(uniforms.age_amplitude.value > -1) {
-			uniforms.age_amplitude.value = uniforms.age_amplitude.value - frame;
-		}
-		frame += 0.0005;
-	}
-
-	animation = requestAnimationFrame( animate );
+	animation = requestAnimationFrame( function() {
+		animate();
+	});
 	controls.update();
 	render();
-
-	if(mouseInteraction == true) {
-		update();
-	}
 }
 
 function update() {
