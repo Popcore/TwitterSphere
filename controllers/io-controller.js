@@ -132,7 +132,7 @@ var streamData = function(SOCKET) {
 							text 						: tweetObj['tweet_text' ],
 							age 						: tweetObj['tweet_age'] / 3600, // Z Pos 
 							sentiment 			: tweetObj['tweet_sentiment_int'] + Math.random() * 10, // X Pos
-							audience				: normalizedAudience,
+							audience				: normalizedAudience, // Y Pos
 							retweets_number : tweetObj['tweet_popularity'],
 							sentimentString	: tweetObj['tweet_sentiment_str'],
 							retweetted_ID		: tweetObj['retweet'],

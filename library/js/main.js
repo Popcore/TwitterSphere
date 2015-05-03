@@ -61,9 +61,6 @@ function init() {
 	positivePosXBand = ( bandWidth * 2 )- halfWidth;
 	negativePosXBand = halfWidth * -1;
 
-	console.log(halfWidth);
-	console.log(bandWidth);
-
 	// sphere 1
 	var geometry = new THREE.IcosahedronGeometry(20, 0);
 	var materal  = new THREE.MeshLambertMaterial(
@@ -127,6 +124,7 @@ function animate() {
 		animate();
 	});
 	controls.update();
+	updateTweetsPosition(parentMesh.children);
 	render();
 
 	// update light position
@@ -137,12 +135,12 @@ function animate() {
   directionalLight.updateMatrixWorld();  
 }
 
-function updateTweetsPosisiton(tweetsObj) {
+function updateTweetsPosition(tweetsObj) {
 	var nowTimestamp = Date.now(),
 			counter = tweetsObj.length;
 
 	while(counter--) {
-		tweetsObj[counter].posZ = (nowTimestamp - tweetsObj[counter][age]) / 1000;
+		tweetsObj[counter].position.z -= 0.2;
 	}
 }
 
@@ -195,12 +193,12 @@ SOCKET.on('query-init-response', function(response) {
 SOCKET.on('streaming-response', function(response) {
 
 	var	posX 		= 0,
-	 		posY 		= Math.random() * 100,
-	 		posZ 		= Math.random() * 100,
+	 		posY 		= Math.random() * 200,
+	 		posZ 		= 0,
 	 		radius  = response.audience,
 	 		sentiment = response['sentiment'],
 	 		color   = new THREE.Color( 0xffffff ),
-	 		bandLength = abs(neutralPosXBand);
+	 		bandLength = Math.abs(neutralPosXBand);
 
 	// set color and position bands
 	switch( response['sentimentString'] ) {
@@ -248,7 +246,7 @@ SOCKET.on('streaming-response', function(response) {
 SOCKET.on('query-stopped', function() {
 
 	console.log('stop query');
-	console.log( scene );
+	console.log( parentMesh );
 	scene.remove( parentMesh );
 	// reset camera + axis
 });
