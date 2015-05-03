@@ -6,8 +6,8 @@ var express 		= require('express'),
 		PythonShell = require('python-shell');
 
 // init app and server
-var app = express(),
-		server = http.Server(app);
+var app 	 = express();
+var server = http.Server(app);
 
 // app settings
 app.set('port', process.env.PORT || 8006);

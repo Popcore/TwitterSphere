@@ -1,5 +1,6 @@
 var animation = null,
-		container, 
+		container,
+		elemCounter = 0,
 		sidebar,
 		headerElem,
 		renderer,
@@ -8,7 +9,7 @@ var animation = null,
 		axisScene,
 		camera,
 		mesh,
-		vMeshParent,
+		parentMesh,
 		// set true to enable raycaster for mouse over objs
 		mouseInteraction = false,
 		sphere,
@@ -24,7 +25,6 @@ var animation = null,
 		frame = 0;
 
 function init() {
-
 	container 		= document.getElementById('container');
 	axisContainer = document.getElementById('axis-container');
 	sidebar       = document.getElementById('sidebar');
@@ -40,9 +40,13 @@ function init() {
 	camera.target = new THREE.Vector3(0, 0, 0);
 	scene.add(camera);
 
-	//mouse control
+	// mouse control
 	controls 		 = new THREE.TrackballControls(camera, container);
 	controls.addEventListener( 'change', render );
+
+	// parent mash
+	parentMesh = new THREE.Object3D();
+	scene.add( parentMesh );
 
 	// sphere 1
 	var geometry = new THREE.IcosahedronGeometry(20, 0);
@@ -99,6 +103,15 @@ function animate() {
   directionalLight.updateMatrixWorld();  
 }
 
+function updateTweetsPosisiton(tweetsObj) {
+	var nowTimestamp = Date.now(),
+			counter = tweetsObj.length;
+
+	while(counter--) {
+		tweetsObj[counter].posZ = (nowTimestamp - tweetsObj[counter][age]) / 1000;
+	}
+}
+
 function update() {
 	var vector = new THREE.Vector3( mouse.x, mouse.y, 1);
 	projector.unprojectVector( vector, camera );
@@ -137,11 +150,8 @@ window.onload = animate();
 * INIT NETWORK GRAPH
 */
 SOCKET.on('query-init-response', function(response) {
-
 	scene.remove(sphere);
-
 	animate();
-	
 	SOCKET.emit('query-init-completed');
 });
 
@@ -149,15 +159,21 @@ SOCKET.on('query-init-response', function(response) {
 * AUGMENT NETWORK GRAPH WITH STREAMING DATA
 */
 SOCKET.on('streaming-response', function(response) {
-	var posX 		 = Math.random() * 100,
+	
+
+	var posX 		 = response.audience + Math.random() * 100,
+			// posX 		 = response[sentiment] + Math.random() * 10,
 	 		posY 		 = Math.random() * 100,
 	 		posZ 		 = Math.random() * 100,
-	 		radius   = Math.random() * 10,
+	 		radius   = response.audience,
 	 		red 		 = Math.random() * 255,
 	 		green 	 = Math.random() * 255,
 	 		blue 		 = Math.random() * 255,
-	 		color    = new THREE.Color('rgb(' + red + ',' + green + ',' +  blue + ')'),
-			positionM = new THREE.Vector3(posX, posY, posZ);
+	 		color    = new THREE.Color('rgb(' + red + ',' + green + ',' +  blue + ')');
+
+	elemCounter++;
+
+	console.log(radius);
 
 	var geometry = new THREE.IcosahedronGeometry(radius, 0);
 	var	materal  = new THREE.MeshLambertMaterial(
@@ -165,11 +181,13 @@ SOCKET.on('streaming-response', function(response) {
 					shading: THREE.FlatShading 
 				} 
 			);
-	var tweetObj = new THREE.Mesh( geometry, materal );
-	tweetObj.position.set(posX, posY, posZ);
 
-	//tweetObj.geometry.dynamic = true;
-	scene.add(tweetObj);
+	var tweetObj 			  = new THREE.Mesh( geometry, materal );
+	tweetObj.name 		  = 'TweetObj_' + elemCounter;
+	tweetObj.parent     = parentMesh;
+	tweetObj.position.set(posX, posY, posZ);
+	tweetObj.rotation.x = (Math.random() * 360) * (Math.PI * 180);
+	parentMesh.add(tweetObj);
 
 });
 
@@ -177,8 +195,9 @@ SOCKET.on('streaming-response', function(response) {
 * STOP QUERY AND RESET DATA
 */
 SOCKET.on('query-stopped', function() {
-		console.log('stop query');
-		scene.remove(sphere);
-		scene.remove(vMeshParent);
-		// reset camera + axis
-	});
+
+	console.log('stop query');
+	console.log( scene );
+	scene.remove( parentMesh );
+	// reset camera + axis
+});

@@ -54,28 +54,32 @@ for tweet in sys.stdin:
 	json_data =  json.loads(tweet)
 	for i, j in enumerate(json_data):
 		tweet_text 					= json_data[i]['text']
-		tweet_age						= json_data[i]['created_at']
-		month_day_time			= tweet_age[:len(tweet_age) - 10]
-		year 								= tweet_age[len(tweet_age) - 4:]
-		full_date 					= month_day_time + year
-		date_timestamp 			= time.mktime(datetime.datetime.strptime(full_date, '%a %b %d %H:%M:%S %Y').timetuple())
+		tweet_birth_ts			= json_data[i]['timestamp_ms']
 		tweet_hashtags 			= json_data[i]['entities']['hashtags']
+		tweet_popularity 		= json_data[i]['retweet_count']
+		user_followers			= json_data[i]['user']['followers_count']
 		tweet_hashtags_list = []
+		retweet 						= {}
+
+		if 'retweeted_status' in json_data[i]:
+			retweet['id']     = json_data[i]['retweeted_status']['id']
+		
+
 		for k, l in enumerate(tweet_hashtags):
 			tweet_hashtags_list.append(tweet_hashtags[k]['text'])
+
 		tweet_sentiment 		= classifier.classify(getFeatures(tweet_text.split()))
-		tweet_popularity 		= json_data[i]['retweet_count']
-		#user_geo = json_data[i]
-		user_followers			= json_data[i]['user']['followers_count']
+		
 
 		tweet_data = { 
 			'tweet_text' 					: tweet_text, 
-			'tweet_age' 					: now_timestamp - date_timestamp,
-			'tweet_hashtags' 			: tweet_hashtags_list, 
+			'tweet_age' 					: tweet_birth_ts,
 			'tweet_sentiment_str' : tweet_sentiment, 
 			'tweet_sentiment_int' : possible_values[tweet_sentiment], 
-			'tweet_popularity' 		: tweet_popularity, 
-			'user_followers' 			: user_followers 
+			'tweet_popularity'		: tweet_popularity,
+			'user_followers' 		  : user_followers, 
+			'retweet' 						: retweet,
+			'tweet_hashtags' 			: tweet_hashtags_list, 
 		}
 
 		print json.dumps(tweet_data, ensure_ascii=True)

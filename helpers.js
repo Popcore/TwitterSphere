@@ -1,8 +1,3 @@
-var helpers = function() {
-	this.name = 'helpers';
-	this.version = '0.1.0';
-}
-
 /**
 * get numeric array m,aximum value
 *
@@ -16,11 +11,11 @@ function arrayMax(numericArr) {
 /**
 * map an array of values accordin to their max input / max value ratio 
 *
-* @params min, max, type:int, the max and min values to map the array data to
-* @params tweetsData, type:array, the body of data
-* @params valueToCompare, type:string, the tweet obj propery to compare 
-* @params [valueToAdd, type: string, the new property to add to tweetsData array if valueToCompare suld be kept intact 
-* @return type:int, the mapped value
+* @params min, max, { int }, the max and min values to map the array data to
+* @params tweetsData, { array }, the body of data
+* @params valueToCompare, { string }, the tweet obj propery to compare 
+* @params valueToAdd, { string }, the new property to add to tweetsData array if valueToCompare suld be kept intact 
+* @return { int }, the mapped value
 */
 var mapToMaxData = function(min, max, tweetsData, valueToCompare, valueToAdd) {
 	var tweetsDataMax = 0,
@@ -50,17 +45,16 @@ var mapToMaxData = function(min, max, tweetsData, valueToCompare, valueToAdd) {
 /**
 * normalize an array of values according to min an max values
 *
-* @params minRange, minRange, type:int, the min and max values to normalize the array data to
-* @params minInput, maxInput type:int, the min and max data that will be passed
-* @params valueToCompare, type:string, the row value to normalize 
-* @return type:int, the normalized value
+* @params minRange, minRange, { int }, the min and max values to normalize the array data to
+* @params minInput, maxInput, { int }, the min and max data that will be passed
+* @params valueToCompare, { string }, the row value to normalize 
+* @return { int }, the normalized value
 */
 var normailzeToRange = function(minRange, maxRange, minInput, maxInput, value) {
-	if(value < minInput ) {
-		value = minInput;
-	} else if(value > maxInput) {
-		value = maxInput;
-	}
+	
+	if( value < minInput ) { value = minInput; } 
+	if( value > maxInput ) { value = maxInput; }
+
 	// normalize value to 0-1 range
 	// formula: (value - min)/(max-min)
 	var normalizedVal = (value - minInput) / (maxInput - minInput);
@@ -131,14 +125,7 @@ function distributeVertices(polygonVerticesArray, tweetsData) {
 			changeArr = false;
 		}
 	}
-
-	// NOW WE NEED TO:
-	// 1) RETURN THE DISTRIBUTED DATA AND REMINDER
-	// 2) MAP AND DISTRIBUTE 1 DATA UNIT AND 1 REMINDER UNIT TO VERTICES ARRAY
-	// 3) UPDATED REMINDER UNIT INTERVAL VERTEX.X VERTEX.Y VERTEX.Z 
-	// TO VALUES BETWEEN DATA[ALPHA].X - DATA[BETA].X | DATA[ALPHA].Y - DATA[BETA].Y | DATA[ALPHA].Z - DATA[BETA].Z
 }
-
 module.exports.mapToMaxData = mapToMaxData;
 module.exports.normailzeToRange = normailzeToRange;
 module.exports.distributeVertices = distributeVertices;

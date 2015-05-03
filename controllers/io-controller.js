@@ -11,12 +11,18 @@ var t = new twitter({
 	access_token_secret : credentials.access_token_secret
 });
 
+// python settings
+var pySettings = {
+  mode 					: 'json',
+  pythonPath		: './venv/bin/python',
+  pythonOptions	: ['-u'],
+  scriptPath		: './venv/',
+};
+
 // socket IO
 var IO 			= null;
 
-var streamData = function(server) {
-	// IO client query
-	// var io = require('socket.io')(server);
+var streamData = function(SOCKET) {
 
 	SOCKET.on('query-init', function(data) {
 
@@ -98,7 +104,7 @@ var streamData = function(server) {
 			function(stream) {
 				stream.on('data', function(data) {
 					t.currentTwitStream = stream;
-					console.log("new tweet");
+					console.log(data);
 					var tweetObj = {};
 
 					// init python script
@@ -115,32 +121,30 @@ var streamData = function(server) {
 					pyScript.end(function(err) {
 						if(err) { console.log(err); }
 
+						// map audience to range
+						// cap max size
+						var normalizedAudience = helpers.normailzeToRange(20, 100, 0, 9999, tweetObj['user_followers']);
+
+						console.log('real number = ' + tweetObj['user_followers']);
+						console.log('audience radius =' + normalizedAudience);
+
 						var pyObj = {
-							sentiment 			: tweetObj['tweet_sentiment_int'] * Math.random() * 10, 	// Pos X
+							text 						: tweetObj['tweet_text' ],
 							age 						: tweetObj['tweet_age'] / 3600,
-							audience				: tweetObj['user_followers'],
-							retweet					: tweetObj['tweet_popularity'],
-							sentimentString	: tweetObj['tweet_sentiment_str']
+							sentiment 			: tweetObj['tweet_sentiment_int'] * Math.random() * 10, 	// Pos X
+							audience				: normalizedAudience,
+							retweets_number : tweetObj['tweet_popularity'],
+							sentimentString	: tweetObj['tweet_sentiment_str'],
+							retweetted_ID		: tweetObj['retweet'],
+							hashtags				: tweetObj['tweet_hashtags']
 						}
 
-						// map data to range
-						processedTData.push(pyObj);
-						processedTData = helpers.mapToMaxData(-1, 1, processedTData, 'audience', 'influence');
-						processedTData = helpers.mapToMaxData(-1, 1, processedTData, 'sentiment');
-						processedTData = helpers.mapToMaxData(-1, 1, processedTData, 'age');
-						
-						// sort by audience
-
-						// TO DO: better sorting here
-						// 				influence(defined in helpers.js) gets values that are to high
-						//				maybe sorting can be done in helpers > mapToMaxData 
-						// 				use audience, age ect and normalize to avoid geometry distortions
-						processedTData.sort(function(a, b) {
-							return a.sentiment - b.sentiment;
-						});
+						// processedTData.push(pyObj);
+						// processedTData = helpers.mapToMaxData(-1, 1, processedTData, 'sentiment');
+						// processedTData = helpers.mapToMaxData(-1, 1, processedTData, 'age');
 
 						// emit data array
-						SOCKET.emit('streaming-response', processedTData);
+						SOCKET.emit('streaming-response', pyObj);
 
 					});
 				});
@@ -158,14 +162,6 @@ var streamData = function(server) {
 	});
 }
 
-// python settings
-var pySettings = {
-  mode 					: 'json',
-  pythonPath		: './venv/bin/python',
-  pythonOptions	: ['-u'],
-  scriptPath		: './venv/',
-};
-
 module.exports = {
 
 	// user request
@@ -176,12 +172,9 @@ module.exports = {
 
 	startConnection : function(server) {
 		IO = require('socket.io')(server);
-
-		// IO connection
 		IO.on('connection', function(socket) {
-
-			SOCKET = socket;
-			return SOCKET, streamData();
+			var SOCKET = socket;
+			streamData(SOCKET);
 		});
 	}
 }
