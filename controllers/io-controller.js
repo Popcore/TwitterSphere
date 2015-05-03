@@ -130,8 +130,8 @@ var streamData = function(SOCKET) {
 
 						var pyObj = {
 							text 						: tweetObj['tweet_text' ],
-							age 						: tweetObj['tweet_age'] / 3600,
-							sentiment 			: tweetObj['tweet_sentiment_int'] * Math.random() * 10, 	// Pos X
+							age 						: tweetObj['tweet_age'] / 3600, // Z Pos 
+							sentiment 			: tweetObj['tweet_sentiment_int'] + Math.random() * 10, // X Pos
 							audience				: normalizedAudience,
 							retweets_number : tweetObj['tweet_popularity'],
 							sentimentString	: tweetObj['tweet_sentiment_str'],

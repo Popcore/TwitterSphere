@@ -21,8 +21,11 @@ var animation = null,
 		INTERSECTED,
 		start = Date.now(),
 		networkPoly = {},
-		fov = 30,
-		frame = 0;
+		fov 	= 0,
+		frame = 0,
+		neutralPosXBand,
+		positivePosXBand,
+		negativePosXBand;
 
 function init() {
 	container 		= document.getElementById('container');
@@ -31,22 +34,35 @@ function init() {
 	headerElem	  = document.getElementById('top-header');
 	scene 				= new THREE.Scene();
 	axisScene 		= new THREE.Scene();
+	aspectRatio   = container.offsetWidth / container.offsetHeight;
+	fov 					= 2 * Math.atan( ( container.offsetWidth/aspectRatio ) / ( 2 * 300 ) ) * ( 180 / Math.PI );
 	camera 				= new THREE.PerspectiveCamera(
 		fov,
-		container.offsetWidth / container.offsetHeight,
+		aspectRatio,
 		1,
 		10000 );
 	camera.position.z = 300;
-	camera.target = new THREE.Vector3(0, 0, 0);
-	scene.add(camera);
+	camera.target = new THREE.Vector3( 0, 0, 0 );
+	scene.add( camera );
 
 	// mouse control
-	controls 		 = new THREE.TrackballControls(camera, container);
+	controls 		 = new THREE.TrackballControls( camera, container );
 	controls.addEventListener( 'change', render );
 
 	// parent mash
 	parentMesh = new THREE.Object3D();
 	scene.add( parentMesh );
+
+	// subdivide container in bands 
+	// for tweetObj positioning based on sentiment
+	var bandWidth 	 = container.offsetWidth/3;
+	var halfWidth    = container.offsetWidth/2;
+	neutralPosXBand  = bandWidth - halfWidth;
+	positivePosXBand = ( bandWidth * 2 )- halfWidth;
+	negativePosXBand = halfWidth * -1;
+
+	console.log(halfWidth);
+	console.log(bandWidth);
 
 	// sphere 1
 	var geometry = new THREE.IcosahedronGeometry(20, 0);
@@ -57,7 +73,25 @@ function init() {
 	);
 	sphere   = new THREE.Mesh( geometry, materal );
 	sphere.geometry.dynamic = true;
-	scene.add(sphere);
+	sphere.rotation.x = (Math.random() * 360) * (Math.PI * 180);
+	sphere.rotation.y = (Math.random() * 360) * (Math.PI * 180);
+	//scene.add(sphere);
+
+	var g = new THREE.IcosahedronGeometry(5, 0);
+	var sphere0   = new THREE.Mesh( geometry, materal );
+	sphere0.position.x = -480;
+	sphere0.position.y = 0;
+	scene.add(sphere0);
+
+	var sphere1   = new THREE.Mesh( geometry, materal );
+	sphere1.position.x =  bandWidth - halfWidth;
+	sphere1.position.y = 0;
+	scene.add(sphere1);
+
+	var sphere2   = new THREE.Mesh( geometry, materal );
+	sphere2.position.x = 480;
+	sphere2.position.y = 0;
+	scene.add(sphere2);
 
 	// light 
 	var light    = new THREE.AmbientLight( 0x404040 ); // soft white light
@@ -159,21 +193,38 @@ SOCKET.on('query-init-response', function(response) {
 * AUGMENT NETWORK GRAPH WITH STREAMING DATA
 */
 SOCKET.on('streaming-response', function(response) {
-	
 
-	var posX 		 = response.audience + Math.random() * 100,
-			// posX 		 = response[sentiment] + Math.random() * 10,
-	 		posY 		 = Math.random() * 100,
-	 		posZ 		 = Math.random() * 100,
-	 		radius   = response.audience,
-	 		red 		 = Math.random() * 255,
-	 		green 	 = Math.random() * 255,
-	 		blue 		 = Math.random() * 255,
-	 		color    = new THREE.Color('rgb(' + red + ',' + green + ',' +  blue + ')');
+	var	posX 		= 0,
+	 		posY 		= Math.random() * 100,
+	 		posZ 		= Math.random() * 100,
+	 		radius  = response.audience,
+	 		sentiment = response['sentiment'],
+	 		color   = new THREE.Color( 0xffffff ),
+	 		bandLength = abs(neutralPosXBand);
+
+	// set color and position bands
+	switch( response['sentimentString'] ) {
+		case 'neutral':
+			color.setRGB(1, 0, 0);
+			posX = neutralPosXBand + (Math.random() * bandLength);
+		break;
+		case 'positive':
+			color.setRGB(1, 1, 0);
+			posX = positivePosXBand + (Math.random() * bandLength);
+		break;
+		case 'negative':
+			color.setRGB(0, 1, 1);
+			posX = negativePosXBand + (Math.random() * bandLength);
+		break;
+		default:
+			color.setRGB(1, 1, 1);
+			posX = neutralPosXBand + (Math.random() * bandLength);
+	}
 
 	elemCounter++;
 
-	console.log(radius);
+	console.log(posX);
+	console.log(response['sentimentString']);
 
 	var geometry = new THREE.IcosahedronGeometry(radius, 0);
 	var	materal  = new THREE.MeshLambertMaterial(
