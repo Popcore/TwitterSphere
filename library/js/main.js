@@ -22,6 +22,8 @@ var animation = null,
 		start = Date.now(),
 		networkPoly = {},
 		fov 	= 0,
+		cameraNear = 1,
+		cameraFar = 1000,
 		frame = 0,
 		neutralPosXBand,
 		positivePosXBand,
@@ -35,13 +37,13 @@ function init() {
 	scene 				= new THREE.Scene();
 	axisScene 		= new THREE.Scene();
 	aspectRatio   = container.offsetWidth / container.offsetHeight;
-	fov 					= 2 * Math.atan( ( container.offsetWidth/aspectRatio ) / ( 2 * 300 ) ) * ( 180 / Math.PI );
+	fov 					= 2 * Math.atan( ( container.offsetWidth/aspectRatio ) / ( 2 * 500 ) ) * ( 180 / Math.PI );
 	camera 				= new THREE.PerspectiveCamera(
 		fov,
 		aspectRatio,
-		1,
-		10000 );
-	camera.position.z = 300;
+		cameraNear,
+		cameraFar );
+	camera.position.z = 500;
 	camera.target = new THREE.Vector3( 0, 0, 0 );
 	scene.add( camera );
 
@@ -97,6 +99,8 @@ function init() {
 	directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
   directionalLight.position.set(1, -1, 1).normalize();
   scene.add( directionalLight );
+
+  scene.updateMatrixWorld(true);
  
 	// renderer 
 	renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -120,7 +124,7 @@ function render() {
 }
 
 function animate() {
-	animation = requestAnimationFrame( function() {
+	animation = requestAnimationFrame(function() {
 		animate();
 	});
 	controls.update();
@@ -137,10 +141,34 @@ function animate() {
 
 function updateTweetsPosition(tweetsObj) {
 	var nowTimestamp = Date.now(),
-			counter = tweetsObj.length;
+			counter = tweetsObj.length,
+			position = new THREE.Vector3();
 
 	while(counter--) {
-		tweetsObj[counter].position.z -= 0.2;
+		if(tweetsObj[counter]) {
+			tweetsObj[counter].position.z -= 0.2;
+			
+			if(tweetsObj[counter].position.z < -10000) {
+				parentMesh.remove( tweetsObj[counter] );
+				// delete tweetsObj[counter];
+			}
+		}
+	}
+}
+
+function linkRetweets(tweetsObj, tweetsList) {
+	var tweetsCounter = tweetsList.length,
+			tweetsObjRetweetID = tweetsObj.retweetted_ID.id;
+
+	console.log('tweet ID: ' + tweetsObjRetweetID);
+
+	if(tweetsObjRetweetID !== undefined) {
+		while(tweetsCounter--) {
+			console.log('retweet ID: ' + tweetsList[tweetsCounter].userData['tweet_id']);
+			if(tweetsObjRetweetID === tweetsList[tweetsCounter].userData['tweet_id']) {
+				console.log('CONNECT TWEETS');
+			}
+		}
 	}
 }
 
@@ -219,9 +247,11 @@ SOCKET.on('streaming-response', function(response) {
 			posX = neutralPosXBand + (Math.random() * bandLength);
 	}
 
+	linkRetweets(response, parentMesh.children);
+
 	elemCounter++;
 
-	console.log(posX);
+	console.log('posX: ' + posX);
 	console.log(response['sentimentString']);
 
 	var geometry = new THREE.IcosahedronGeometry(radius, 0);
@@ -234,6 +264,10 @@ SOCKET.on('streaming-response', function(response) {
 	var tweetObj 			  = new THREE.Mesh( geometry, materal );
 	tweetObj.name 		  = 'TweetObj_' + elemCounter;
 	tweetObj.parent     = parentMesh;
+	tweetObj.userData['tweet_id']  = response.tweetID;
+	tweetObj.userData['text'] 		 = response['text'];
+	tweetObj.userData['followers'] = response['followers'];
+	tweetObj.userData['hashtags']  = response['hashtags'];	
 	tweetObj.position.set(posX, posY, posZ);
 	tweetObj.rotation.x = (Math.random() * 360) * (Math.PI * 180);
 	parentMesh.add(tweetObj);

@@ -60,16 +60,15 @@ for tweet in sys.stdin:
 		user_followers			= json_data[i]['user']['followers_count']
 		tweet_hashtags_list = []
 		retweet 						= {}
+		tweet_id 						= json_data[i]['id']
 
 		if 'retweeted_status' in json_data[i]:
 			retweet['id']     = json_data[i]['retweeted_status']['id']
-		
 
 		for k, l in enumerate(tweet_hashtags):
 			tweet_hashtags_list.append(tweet_hashtags[k]['text'])
 
 		tweet_sentiment 		= classifier.classify(getFeatures(tweet_text.split()))
-		
 
 		tweet_data = { 
 			'tweet_text' 					: tweet_text, 
@@ -80,6 +79,7 @@ for tweet in sys.stdin:
 			'user_followers' 		  : user_followers, 
 			'retweet' 						: retweet,
 			'tweet_hashtags' 			: tweet_hashtags_list, 
+			'tweet_id'						: tweet_id
 		}
 
 		print json.dumps(tweet_data, ensure_ascii=True)

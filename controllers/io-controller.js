@@ -67,26 +67,24 @@ var streamData = function(SOCKET) {
 					obj['audience']		=	dataArray[j]['user_followers'];															// Pos Y		
 					obj['retweet']		= dataArray[j]['tweet_popularity'];														// Surface (min 1)	
 					obj['sentimentString']  = dataArray[j]['tweet_sentiment_str'];
+					obj['text']  			= dataArray[j]['tweet_text'];
+					obj['hastags']  	= dataArray[j]['tweet_hashtags'];
+					obj['id']					= dataArray[j]['tweet_id'];
 
 					dataToPass.push(obj);
 				}
 
 				// map audience to range
-				var mappedData = helpers.mapToMaxData(0, 20, dataToPass, 'audience', 'influence');
+				//var mappedData = helpers.mapToMaxData(0, 20, dataToPass, 'audience', 'influence');
 
 				// map age to range
-				mappedData = helpers.mapToMaxData(0, 20, dataToPass, 'age');
-
-				// sort by audience
-				mappedData.sort(function(a, b) {
-					return a.age - b.age;
-				});
+				//mappedData = helpers.mapToMaxData(0, 20, dataToPass, 'age');
 
 				// augment twitter data property
-				that.processTwitterData = mappedData;
+				//that.processTwitterData = mappedData;
 
 				// emit data array
-				SOCKET.emit('query-init-response', that.processTwitterData);
+				SOCKET.emit('query-init-response', dataToPass);
 			});
 		});
 	});
@@ -129,19 +127,18 @@ var streamData = function(SOCKET) {
 						console.log('audience radius =' + normalizedAudience);
 
 						var pyObj = {
-							text 						: tweetObj['tweet_text' ],
+							tweetID 				: tweetObj['tweet_id'],
+							text 						: tweetObj['tweet_text'],
 							age 						: tweetObj['tweet_age'] / 3600, // Z Pos 
 							sentiment 			: tweetObj['tweet_sentiment_int'] + Math.random() * 10, // X Pos
-							audience				: normalizedAudience, // Y Pos
+							audience				: normalizedAudience, // Y Pos + radius
+							followers 			: tweetObj['user_followers'],
 							retweets_number : tweetObj['tweet_popularity'],
 							sentimentString	: tweetObj['tweet_sentiment_str'],
 							retweetted_ID		: tweetObj['retweet'],
-							hashtags				: tweetObj['tweet_hashtags']
+							hashtags				: tweetObj['tweet_hashtags'],
+							alfio 					: 'muschio'
 						}
-
-						// processedTData.push(pyObj);
-						// processedTData = helpers.mapToMaxData(-1, 1, processedTData, 'sentiment');
-						// processedTData = helpers.mapToMaxData(-1, 1, processedTData, 'age');
 
 						// emit data array
 						SOCKET.emit('streaming-response', pyObj);
