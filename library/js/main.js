@@ -158,14 +158,24 @@ function updateTweetsPosition(tweetsObj) {
 
 function linkRetweets(tweetsObj, tweetsList) {
 	var tweetsCounter = tweetsList.length,
-			tweetsObjRetweetID = tweetsObj.retweetted_ID.id;
+			tweetsObjRetweetID = tweetsObj.userData.retweetted_id;
 
-	console.log('tweet ID: ' + tweetsObjRetweetID);
+	console.log(tweetsObj.userData.retweetted_id);
 
 	if(tweetsObjRetweetID !== undefined) {
 		while(tweetsCounter--) {
 			console.log('retweet ID: ' + tweetsList[tweetsCounter].userData['tweet_id']);
 			if(tweetsObjRetweetID === tweetsList[tweetsCounter].userData['tweet_id']) {
+
+				console.log(tweetsObj.position);
+
+				// display line to connet tweets
+				var material = new THREE.LineBasicMaterial({ color: 0xffffff });
+				var lineGeometry = new THREE.Geometry();
+				lineGeometry.vertices.push(tweetsObj.position);
+				lineGeometry.vertices.push(tweetsList[tweetsCounter].position);
+				var line = new THREE.Line(lineGeometry, material);
+				parentMesh.add(line);
 				console.log('CONNECT TWEETS');
 			}
 		}
@@ -247,12 +257,7 @@ SOCKET.on('streaming-response', function(response) {
 			posX = neutralPosXBand + (Math.random() * bandLength);
 	}
 
-	linkRetweets(response, parentMesh.children);
-
 	elemCounter++;
-
-	console.log('posX: ' + posX);
-	console.log(response['sentimentString']);
 
 	var geometry = new THREE.IcosahedronGeometry(radius, 0);
 	var	materal  = new THREE.MeshLambertMaterial(
@@ -267,10 +272,13 @@ SOCKET.on('streaming-response', function(response) {
 	tweetObj.userData['tweet_id']  = response.tweetID;
 	tweetObj.userData['text'] 		 = response['text'];
 	tweetObj.userData['followers'] = response['followers'];
-	tweetObj.userData['hashtags']  = response['hashtags'];	
+	tweetObj.userData['hashtags']  = response['hashtags'];
+	tweetObj.userData['retweetted_id'] = response.retweetted_ID.id || undefined;
 	tweetObj.position.set(posX, posY, posZ);
 	tweetObj.rotation.x = (Math.random() * 360) * (Math.PI * 180);
 	parentMesh.add(tweetObj);
+
+	linkRetweets(tweetObj, parentMesh.children);
 
 });
 

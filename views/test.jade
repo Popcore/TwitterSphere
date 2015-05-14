@@ -1,0 +1,37 @@
+doctype html5
+
+html(lang="eng")
+	
+	head
+		title TwitterSphere
+		link(rel="stylesheet", href="css/style.css")
+
+	body
+		
+		aside#sidebar
+			h1#title Net&mdash; <br /> work Sphere
+
+			form#side-controls
+				input(type='text', class="user-query-data", id='keyword', name='keyword', placeholder='Keyword')
+				input(type='text', class="user-query-data", id='location', name='location', placeholder='Location')
+				input(type='text', class="user-query-data", id='user', name='user', placeholder='User')
+				
+				input(type='submit', class="hidden-el", id='start-query', value='GO')
+		
+
+		header#top-header
+			h1 Dude Awesome
+
+		div#container
+
+		div#axis-container
+
+		footer
+			script(src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js")
+			script(src="/socket.io/socket.io.js")
+			script(type='text/javascript').
+				var SOCKET = io();
+			script(src="/js/libraries/three.min.js" id="vertexShader")
+			script(src="/js/libraries/trackball.js")
+			script(src="/js/test.js")
+			script(src="/js/dom.js")
