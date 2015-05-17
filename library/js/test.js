@@ -80,6 +80,17 @@ function init() {
 		} 
 	);
 
+	// circle
+	var circleMaterial = new THREE.MeshBasicMaterial({
+		color: 0x0000ff
+	});
+
+	var circleRadius = 5;
+	var circleSegments = 32;
+	var circleGeometry = new THREE.CircleGeometry( circleRadius, circleSegments );				
+	var circle = new THREE.Mesh( circleGeometry, circleMaterial );
+	scene.add( circle );
+
 	var g = new THREE.IcosahedronGeometry(5, 0);
 	var sphere0   = new THREE.Mesh( geometry, materal );
 	sphere0.position.x = -480;

@@ -14,16 +14,15 @@ var animation = null,
 		mouseInteraction = false,
 		sphere,
 		controls,
-		projector,
-		directionalLight,
-		mouse = new THREE.Vector2(),
+		mouseVector = new THREE.Vector3(),
 		raycaster = new THREE.Raycaster(),
+		directionalLight,
 		INTERSECTED,
 		start = Date.now(),
 		networkPoly = {},
 		fov 	= 0,
 		cameraNear = 1,
-		cameraFar = 1000,
+		cameraFar = 10000,
 		frame = 0,
 		neutralPosXBand,
 		positivePosXBand,
@@ -98,7 +97,7 @@ function init() {
 
 	directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
   directionalLight.position.set(1, -1, 1).normalize();
-  scene.add( directionalLight );
+  scene.add( directionalLight );  
 
   scene.updateMatrixWorld(true);
  
@@ -139,6 +138,40 @@ function animate() {
   directionalLight.updateMatrixWorld();  
 }
 
+var vv = new THREE.Vector3();
+
+window.addEventListener('mousemove', onMouseMove, false);
+function onMouseMove(ev) {
+	var sidebarWidth  = sidebar.offsetWidth;
+	var headerHeight  = headerElem.offsetHeight;
+	mouseVector.x = (2 * ( (ev.clientX - sidebarWidth) / container.offsetWidth) - 1); // sidebar
+	mouseVector.y = (1 - 2 * ( (ev.clientY - headerHeight)/ container.offsetHeight )); // headerElem
+
+	//console.log('sidebar width: ' + sidebarWidth);
+	//console.log(mouseVector.x);
+
+	// var vector = mouseVector.clone().unproject( camera ),
+	// 		direction = new THREE.Vector3( 0, 0, -1 ).transformDirection( camera.matrixWorld );
+
+	// raycaster.set(vector, direction);
+	// var intersects = raycaster.intersectObjects( parentMesh.children ),
+	// 		intersectsLength = intersects.length;
+
+	vv.set( mouseVector.x , mouseVector.y, 0.5 ); // z = 0.5 important!
+	vv.unproject( camera );
+	raycaster.set( camera.position, vv.sub( camera.position ).normalize() );
+	var intersects = raycaster.intersectObjects( parentMesh.children, true );
+	var intersectsLength = intersects.length;
+
+	for( var i = 0; i < intersectsLength; i++) {
+		var intersection = intersects[i],
+				obj = intersection.object;
+
+		obj.material.color.setRGB(1.0 - i / intersects.length, 1.0, 1.0)
+	}
+
+}
+
 function updateTweetsPosition(tweetsObj) {
 	var nowTimestamp = Date.now(),
 			counter = tweetsObj.length,
@@ -160,23 +193,41 @@ function linkRetweets(tweetsObj, tweetsList) {
 	var tweetsCounter = tweetsList.length,
 			tweetsObjRetweetID = tweetsObj.userData.retweetted_id;
 
-	console.log(tweetsObj.userData.retweetted_id);
-
 	if(tweetsObjRetweetID !== undefined) {
 		while(tweetsCounter--) {
 			console.log('retweet ID: ' + tweetsList[tweetsCounter].userData['tweet_id']);
+
 			if(tweetsObjRetweetID === tweetsList[tweetsCounter].userData['tweet_id']) {
 
-				console.log(tweetsObj.position);
+				console.log('LINK');
 
 				// display line to connet tweets
-				var material = new THREE.LineBasicMaterial({ color: 0xffffff });
-				var lineGeometry = new THREE.Geometry();
+				var material 						= new THREE.LineBasicMaterial({ color: 0xffffff }),
+						lineGeometry 				= new THREE.Geometry();
+						originalTweetRadius = tweetsList[tweetsCounter].userData['radius'];
+
+				console.log(originalTweetRadius);
+
 				lineGeometry.vertices.push(tweetsObj.position);
 				lineGeometry.vertices.push(tweetsList[tweetsCounter].position);
+
+				// enlarge original tweet mesh
 				var line = new THREE.Line(lineGeometry, material);
 				parentMesh.add(line);
-				console.log('CONNECT TWEETS');
+				
+				var retweetGeometry = new THREE.IcosahedronGeometry(originalTweetRadius + 20, 0);
+				var	retweetMateral  = new THREE.MeshLambertMaterial(
+					{ color 			: 0x0000ff, 
+						shading 		: THREE.FlatShading,
+						transparent : true,
+						opacity 		: 0.5
+					} 
+				);
+				var retweetOuterObj = new THREE.Mesh( retweetGeometry, retweetMateral );
+				// tweetsList[tweetsCounter].add(retweetOuterObj);
+				retweetOuterObj.position.set( tweetsList[tweetsCounter].position.x, tweetsList[tweetsCounter].position.y, tweetsList[tweetsCounter].position.z );
+				parentMesh.add(retweetOuterObj);
+				break;
 			}
 		}
 	}
@@ -269,7 +320,9 @@ SOCKET.on('streaming-response', function(response) {
 	var tweetObj 			  = new THREE.Mesh( geometry, materal );
 	tweetObj.name 		  = 'TweetObj_' + elemCounter;
 	tweetObj.parent     = parentMesh;
+	tweetObj.originalColor 				 = color; 
 	tweetObj.userData['tweet_id']  = response.tweetID;
+	tweetObj.userData['radius']  	 = response.audience;
 	tweetObj.userData['text'] 		 = response['text'];
 	tweetObj.userData['followers'] = response['followers'];
 	tweetObj.userData['hashtags']  = response['hashtags'];
