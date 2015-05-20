@@ -75,6 +75,10 @@ jQuery(document).ready(function($) {
 		}
 	});
 
-
+	SOCKET.on('say-hi-to-tweet', function() {
+		console.log('hello tweet');
+	});
 
 });
+
+

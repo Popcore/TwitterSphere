@@ -157,6 +157,12 @@ var streamData = function(SOCKET) {
 			SOCKET.emit('query-stopped');
 		}
 	});
+
+	// Display tweet info on selection
+	SOCKET.on('tweet-selected', function() {
+		//$('div#tweet-info-container').html('You make me feel like dancing');
+		SOCKET.emit('say-hi-to-tweet');
+	});
 }
 
 module.exports = {

@@ -10,8 +10,6 @@ var animation = null,
 		camera,
 		mesh,
 		parentMesh,
-		// set true to enable raycaster for mouse over objs
-		mouseInteraction = false,
 		sphere,
 		controls,
 		mouseVector = new THREE.Vector3(),
@@ -109,15 +107,6 @@ function init() {
 
 };
 
-function onDocumentMouseMove(event) {
-	var sidebarWidth  = sidebar.offsetWidth;
-	var headerHeight  = headerElem.offsetHeight;
-	mouse.x = ( (event.clientX - sidebarWidth) / container.offsetWidth) * 2 - 1;
-	mouse.y = - ( (event.clientY - headerHeight) / container.offsetHeight ) * 2 + 1;
-	mouse.realX = event.clientX;
-	mouse.realY = event.clientY;
-} 
-
 function render() {
 	renderer.render( scene, camera );
 }
@@ -140,22 +129,13 @@ function animate() {
 
 var vv = new THREE.Vector3();
 
+// mouse movement and hover
 window.addEventListener('mousemove', onMouseMove, false);
 function onMouseMove(ev) {
 	var sidebarWidth  = sidebar.offsetWidth;
 	var headerHeight  = headerElem.offsetHeight;
 	mouseVector.x = (2 * ( (ev.clientX - sidebarWidth) / container.offsetWidth) - 1); // sidebar
 	mouseVector.y = (1 - 2 * ( (ev.clientY - headerHeight)/ container.offsetHeight )); // headerElem
-
-	//console.log('sidebar width: ' + sidebarWidth);
-	//console.log(mouseVector.x);
-
-	// var vector = mouseVector.clone().unproject( camera ),
-	// 		direction = new THREE.Vector3( 0, 0, -1 ).transformDirection( camera.matrixWorld );
-
-	// raycaster.set(vector, direction);
-	// var intersects = raycaster.intersectObjects( parentMesh.children ),
-	// 		intersectsLength = intersects.length;
 
 	vv.set( mouseVector.x , mouseVector.y, 0.5 ); // z = 0.5 important!
 	vv.unproject( camera );
@@ -167,9 +147,12 @@ function onMouseMove(ev) {
 		var intersection = intersects[i],
 				obj = intersection.object;
 
-		obj.material.color.setRGB(1.0 - i / intersects.length, 1.0, 1.0)
-	}
+		obj.material.color.setRGB(1.0 - i / intersects.length, 1.0, 1.0);
 
+		if(obj) {
+			console.log('got it');
+		}
+	}
 }
 
 function updateTweetsPosition(tweetsObj) {
@@ -230,36 +213,6 @@ function linkRetweets(tweetsObj, tweetsList) {
 				break;
 			}
 		}
-	}
-}
-
-function update() {
-	var vector = new THREE.Vector3( mouse.x, mouse.y, 1);
-	projector.unprojectVector( vector, camera );
-	raycaster.set( camera.position, vector.sub(camera.position).normalize() );
-
-	// create array of objects with which the ray intersects
-	var intersects = raycaster.intersectObjects( scene.children, true ); 
-
-	// INTERSECTED = the object closest to the camera and intersected by 
-	// the ray projected from the mouse position
-	if(intersects.length > 0) {
-		
-		if(intersects[0].object != INTERSECTED) {
-			if(INTERSECTED) {
-				console.log(INTERSECTED.material.color);
-				INTERSECTED.material.color.setHex(0xff0000);
-			}
-			INTERSECTED = intersects[0].object;
-			//INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
-			console.log(INTERSECTED.material);
-			INTERSECTED.material.color.setHex(0xff0000);
-		}
-	} else {
-		if(INTERSECTED) {
-			INTERSECTED.material.color.setHex(0xff0000);
-		}
-		INTERSECTED = null;
 	}
 }
 
@@ -334,6 +287,15 @@ SOCKET.on('streaming-response', function(response) {
 	linkRetweets(tweetObj, parentMesh.children);
 
 });
+
+window.addEventListener('click', doityo, false);
+function doityo() {
+	console.log('li');
+	var data = 'hi';
+	SOCKET.emit('tweet-selected', data);
+}
+
+
 
 /*
 * STOP QUERY AND RESET DATA
