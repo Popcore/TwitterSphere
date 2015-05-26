@@ -150,7 +150,7 @@ function onMouseMove(ev) {
 		obj.material.color.setRGB(1.0 - i / intersects.length, 1.0, 1.0);
 
 		if(obj) {
-			console.log('got it');
+			SOCKET.emit('tweet-selected', obj);
 		}
 	}
 }
@@ -287,14 +287,6 @@ SOCKET.on('streaming-response', function(response) {
 	linkRetweets(tweetObj, parentMesh.children);
 
 });
-
-window.addEventListener('click', doityo, false);
-function doityo() {
-	console.log('li');
-	var data = 'hi';
-	SOCKET.emit('tweet-selected', data);
-}
-
 
 
 /*

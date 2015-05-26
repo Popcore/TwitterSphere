@@ -159,9 +159,9 @@ var streamData = function(SOCKET) {
 	});
 
 	// Display tweet info on selection
-	SOCKET.on('tweet-selected', function() {
+	SOCKET.on('tweet-selected', function(data) {
 		//$('div#tweet-info-container').html('You make me feel like dancing');
-		SOCKET.emit('say-hi-to-tweet');
+		SOCKET.emit('display-tweet-info', data);
 	});
 }
 

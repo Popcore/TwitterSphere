@@ -75,9 +75,25 @@ jQuery(document).ready(function($) {
 		}
 	});
 
-	SOCKET.on('say-hi-to-tweet', function() {
-		console.log('hello tweet');
-	});
+	SOCKET.on('display-tweet-info', function(data) {
+		console.log(data.object.userData.text);
+
+		var tweetData 	 = data.object.userData,
+				tweetContent = tweetData.text,
+				followers 	 = tweetData.followers,
+				hashtagsArr  = tweetData.hashtags; // Array
+
+		if(hashtagsArr.length == 0) {
+			hashtagsArr = ['None'];
+		}
+
+		// append data to DOM
+		$('DIV#tweet-info-container').html('<p>' + 
+			'TWEET BODY:' + tweetContent + '<br>' +
+			'FOLLOWERS:' + followers + '<br>' +
+			'HASTAGS:' + hashtagsArr.join(', ') +
+			'</p>');
+	});	
 
 });
 
