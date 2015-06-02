@@ -10,6 +10,7 @@ var animation = null,
 		camera,
 		mesh,
 		parentMesh,
+		parentMesh2,
 		// set true to enable raycaster for mouse over objs
 		mouseInteraction = false,
 		sphere,
@@ -23,7 +24,7 @@ var animation = null,
 		networkPoly = {},
 		fov 	= 0,
 		cameraNear = 1,
-		cameraFar = 1000,
+		cameraFar = 100000,
 		frame = 0,
 		neutralPosXBand,
 		positivePosXBand,
@@ -53,7 +54,9 @@ function init() {
 
 	// parent mash
 	parentMesh = new THREE.Object3D();
+	parentMesh2 = new THREE.Object3D();
 	scene.add( parentMesh );
+	scene.add( parentMesh2 );
 
 	// subdivide container in bands 
 	// for tweetObj positioning based on sentiment
@@ -102,6 +105,32 @@ function init() {
 	sphere1.position.y = 0;
 	scene.add(sphere1);
 
+	function makeMash(posX, posY, geometry, materal, index) {
+		var sss = new THREE.Mesh( geometry, materal );
+		sss.position.x = posX;
+		sss.position.y = posY;
+		sss.name = "objectName" + index;
+		sss.lookAt( new THREE.Vector3(0, 0, 0) );
+
+		parentMesh2.add(sss);
+	}
+
+	for(var i = 0; i <= 10; i++) {
+		
+		var step = 360/10;
+		var radius = 200;
+		var materal  = new THREE.MeshLambertMaterial(
+			{ color: 0x00ffff, 
+				shading: THREE.FlatShading 
+			} 
+		);
+		posX = Math.cos(step * i) * radius;
+		posY = Math.sin(step * i) * radius;
+
+		makeMash(posX, posY, geometry, materal, i);
+		
+	}
+
 	// light 
 	var light    = new THREE.AmbientLight( 0x404040 ); // soft white light
 	scene.add( light );
@@ -138,6 +167,13 @@ function animate() {
 		animate();
 	});
 	controls.update();
+
+	for(var i = 0; i <= 10; i++) {
+		var object = parentMesh2.getObjectByName( "objectName" + i);
+		//object.translateX( 0.1 );
+		object.translateZ( -0.2 );
+	}
+
 	render();
 
 	// update light position
