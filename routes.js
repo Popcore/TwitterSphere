@@ -5,7 +5,6 @@ module.exports = function(app) {
 		res.render('index.jade');
 	});
 
-
 	// Test Page
 	app.get('/test', function(req, res) {
 		res.render('test.jade');

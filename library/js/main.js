@@ -71,7 +71,6 @@ function init() {
 	sphere.geometry.dynamic = true;
 	sphere.rotation.x = (Math.random() * 360) * (Math.PI * 180);
 	sphere.rotation.y = (Math.random() * 360) * (Math.PI * 180);
-	//scene.add(sphere);
 
 	var g = new THREE.IcosahedronGeometry(5, 0);
 	var sphere0   = new THREE.Mesh( geometry, materal );
@@ -106,6 +105,17 @@ function init() {
 	container.appendChild( renderer.domElement ); 
 
 };
+
+function initTweetObjPosition() {
+	var radius = 200,
+			step   = 360/(Math.random() * 360),
+			initialPosition = {};
+
+	initialPosition.posX = Math.cos(step) * radius;
+	initialPosition.posY = Math.sin(step) * radius;
+
+	return initialPosition;
+}
 
 function render() {
 	renderer.render( scene, camera );
@@ -162,7 +172,8 @@ function updateTweetsPosition(tweetsObj) {
 
 	while(counter--) {
 		if(tweetsObj[counter]) {
-			tweetsObj[counter].position.z -= 0.2;
+			// tweetsObj[counter].position.z -= 0.2;
+			tweetsObj[counter].translateZ( -0.2 );
 			
 			if(tweetsObj[counter].position.z < -10000) {
 				parentMesh.remove( tweetsObj[counter] );
@@ -234,13 +245,12 @@ SOCKET.on('query-init-response', function(response) {
 */
 SOCKET.on('streaming-response', function(response) {
 
-	var	posX 		= 0,
-	 		posY 		= Math.random() * 200,
-	 		posZ 		= 0,
+	var	posZ 		= 0,
 	 		radius  = response.audience,
 	 		sentiment = response['sentiment'],
 	 		color   = new THREE.Color( 0xffffff ),
-	 		bandLength = Math.abs(neutralPosXBand);
+	 		bandLength = Math.abs(neutralPosXBand),
+	 		tweetPosition = initTweetObjPosition();
 
 	// set color and position bands
 	switch( response['sentimentString'] ) {
@@ -280,7 +290,7 @@ SOCKET.on('streaming-response', function(response) {
 	tweetObj.userData['followers'] = response['followers'];
 	tweetObj.userData['hashtags']  = response['hashtags'];
 	tweetObj.userData['retweetted_id'] = response.retweetted_ID.id || undefined;
-	tweetObj.position.set(posX, posY, posZ);
+	tweetObj.position.set(tweetPosition.posX, tweetPosition.posY, posZ);
 	tweetObj.rotation.x = (Math.random() * 360) * (Math.PI * 180);
 	parentMesh.add(tweetObj);
 
