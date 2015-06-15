@@ -76,7 +76,7 @@ jQuery(document).ready(function($) {
 	});
 
 	SOCKET.on('display-tweet-info', function(data) {
-		console.log(data.object.userData.text);
+		//console.log(data.object.userData.text);
 
 		var tweetData 	 = data.object.userData,
 				tweetContent = tweetData.text,
@@ -88,11 +88,12 @@ jQuery(document).ready(function($) {
 		}
 
 		// append data to DOM
-		$('DIV#tweet-info-container').html('<p>' + 
-			'TWEET BODY:' + tweetContent + '<br>' +
-			'FOLLOWERS:' + followers + '<br>' +
-			'HASTAGS:' + hashtagsArr.join(', ') +
-			'</p>');
+		// => it screws up the mouse tracking position
+		//$('DIV#tweet-info-container').html('<p>' + 
+		//	'TWEET BODY:' + tweetContent + '<br>' +
+		//	'FOLLOWERS:' + followers + '<br>' +
+		//	'HASTAGS:' + hashtagsArr.join(', ') +
+		//	'</p>');
 	});	
 
 });

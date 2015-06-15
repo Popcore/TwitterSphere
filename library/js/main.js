@@ -137,13 +137,21 @@ function animate() {
   directionalLight.updateMatrixWorld();  
 }
 
-var vv = new THREE.Vector3();
+var vv = new THREE.Vector3(),
+		intersectionObj = undefined,
+		intersArr 			=	[],
+	  currentColorR 	= 0,
+		currentColorG 	= 0,
+		currentColorB 	= 0,
+		objHasOriginalColor = true;
 
 // mouse movement and hover
 window.addEventListener('mousemove', onMouseMove, false);
 function onMouseMove(ev) {
-	var sidebarWidth  = sidebar.offsetWidth;
-	var headerHeight  = headerElem.offsetHeight;
+	var sidebarWidth  	= sidebar.offsetWidth,
+			headerHeight  	= headerElem.offsetHeight;
+			
+
 	mouseVector.x = (2 * ( (ev.clientX - sidebarWidth) / container.offsetWidth) - 1); // sidebar
 	mouseVector.y = (1 - 2 * ( (ev.clientY - headerHeight)/ container.offsetHeight )); // headerElem
 
@@ -153,15 +161,34 @@ function onMouseMove(ev) {
 	var intersects = raycaster.intersectObjects( parentMesh.children, true );
 	var intersectsLength = intersects.length;
 
-	for( var i = 0; i < intersectsLength; i++) {
-		var intersection = intersects[i],
-				obj = intersection.object;
+	if(intersectsLength > 0) {
+		for( var i = 0; i < intersectsLength; i++) {
+			var intersection = intersects[i];
 
-		obj.material.color.setRGB(1.0 - i / intersects.length, 1.0, 1.0);
+			intersectionObj = intersection.object;
 
-		if(obj) {
-			SOCKET.emit('tweet-selected', obj);
+			console.log(currentColorG);
+
+			if( intersectionObj ) {
+				if( objHasOriginalColor == true ) {
+					currentColorR 	= intersectionObj.material.color.r,
+					currentColorG 	= intersectionObj.material.color.g,
+					currentColorB 	= intersectionObj.material.color.b;
+				}
+
+				console.log(currentColorR + '-' + currentColorG + '-' + currentColorB);
+				intersectionObj.material.color.setRGB(1.0 - i / intersects.length, 1.0, 1.0);
+				objHasOriginalColor = false; 
+				SOCKET.emit('tweet-selected', intersectionObj);
+			} else {
+				console.log('no intersection');
+			}
 		}
+	}
+
+	if(intersectionObj && intersectsLength == 0) {
+		intersectionObj.material.color.setRGB(currentColorR, currentColorG, currentColorB);
+		objHasOriginalColor = true; 
 	}
 }
 
@@ -192,8 +219,6 @@ function linkRetweets(tweetsObj, tweetsList) {
 			console.log('retweet ID: ' + tweetsList[tweetsCounter].userData['tweet_id']);
 
 			if(tweetsObjRetweetID === tweetsList[tweetsCounter].userData['tweet_id']) {
-
-				console.log('LINK');
 
 				// display line to connet tweets
 				var material 						= new THREE.LineBasicMaterial({ color: 0xffffff }),
