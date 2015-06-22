@@ -91,6 +91,11 @@ input#start-query {
 	background-color: #333;
 	color: #FFF;
 	margin-top: 10px;
+	cursor: pointer;
+}
+
+input#start-query:hover {
+	background-color: #278497;
 }
 
 input#start-query:focus {

@@ -1,5 +1,4 @@
 TO DO LIST
-=> Reset color on mouse out
 => Add ring
 => Reset camera button
 => Position tweets on 360 radius
@@ -13,4 +12,4 @@ TO DO LIST
 
 BUGS 
 => mapToMaxData not WORKING PROPERLY!
-=> IMPROVE SORTING
+=> restart app if crashes

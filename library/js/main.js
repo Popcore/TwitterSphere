@@ -10,13 +10,13 @@ var animation = null,
 		camera,
 		mesh,
 		parentMesh,
+		parentOrbitMesh,
 		sphere,
 		controls,
 		mouseVector = new THREE.Vector3(),
 		raycaster = new THREE.Raycaster(),
 		directionalLight,
-		INTERSECTED,
-		start = Date.now(),
+		intersected = {},
 		networkPoly = {},
 		fov 	= 0,
 		cameraNear = 1,
@@ -24,7 +24,13 @@ var animation = null,
 		frame = 0,
 		neutralPosXBand,
 		positivePosXBand,
-		negativePosXBand;
+		negativePosXBand,
+		vv = new THREE.Vector3(), // use for mouse projection
+		intersectionObj = undefined, // mouse intersection object
+	  currentColorR 	= 0,
+		currentColorG 	= 0,
+		currentColorB 	= 0,
+		objHasOriginalColor = true;
 
 function init() {
 	container 		= document.getElementById('container');
@@ -48,45 +54,25 @@ function init() {
 	controls 		 = new THREE.TrackballControls( camera, container );
 	controls.addEventListener( 'change', render );
 
-	// parent mash
-	parentMesh = new THREE.Object3D();
-	scene.add( parentMesh );
-
-	// subdivide container in bands 
-	// for tweetObj positioning based on sentiment
-	var bandWidth 	 = container.offsetWidth/3;
-	var halfWidth    = container.offsetWidth/2;
-	neutralPosXBand  = bandWidth - halfWidth;
-	positivePosXBand = ( bandWidth * 2 )- halfWidth;
-	negativePosXBand = halfWidth * -1;
-
-	// sphere 1
+	// center
 	var geometry = new THREE.IcosahedronGeometry(20, 0);
 	var materal  = new THREE.MeshLambertMaterial(
-		{ color: 0xffffff, 
+		{ color: 0x0000ff, 
 			shading: THREE.FlatShading 
 		} 
 	);
-	sphere   = new THREE.Mesh( geometry, materal );
-	sphere.geometry.dynamic = true;
-	sphere.rotation.x = (Math.random() * 360) * (Math.PI * 180);
-	sphere.rotation.y = (Math.random() * 360) * (Math.PI * 180);
-
-	var g = new THREE.IcosahedronGeometry(5, 0);
-	var sphere0   = new THREE.Mesh( geometry, materal );
-	sphere0.position.x = -480;
-	sphere0.position.y = 0;
-	scene.add(sphere0);
-
-	var sphere1   = new THREE.Mesh( geometry, materal );
-	sphere1.position.x =  bandWidth - halfWidth;
+	var sphere1   		 = new THREE.Mesh( geometry, materal );
+	sphere1.position.x =  0;
 	sphere1.position.y = 0;
 	scene.add(sphere1);
 
-	var sphere2   = new THREE.Mesh( geometry, materal );
-	sphere2.position.x = 480;
-	sphere2.position.y = 0;
-	scene.add(sphere2);
+	// tweets parent mash
+	parentMesh = new THREE.Object3D();
+	scene.add( parentMesh );
+
+	// orbits parent mesh
+	parentOrbitMesh = new THREE.Object3D();
+	scene.add( parentOrbitMesh );
 
 	// light 
 	var light    = new THREE.AmbientLight( 0x404040 ); // soft white light
@@ -106,17 +92,6 @@ function init() {
 
 };
 
-function initTweetObjPosition() {
-	var radius = 200,
-			step   = 360/(Math.random() * 360),
-			initialPosition = {};
-
-	initialPosition.posX = Math.cos(step) * radius;
-	initialPosition.posY = Math.sin(step) * radius;
-
-	return initialPosition;
-}
-
 function render() {
 	renderer.render( scene, camera );
 }
@@ -126,7 +101,7 @@ function animate() {
 		animate();
 	});
 	controls.update();
-	updateTweetsPosition(parentMesh.children);
+	updateTweetsAndOrbitPosition( parentMesh.children, parentOrbitMesh.children );
 	render();
 
 	// update light position
@@ -137,15 +112,8 @@ function animate() {
   directionalLight.updateMatrixWorld();  
 }
 
-var vv = new THREE.Vector3(),
-		intersectionObj = undefined,
-		intersArr 			=	[],
-	  currentColorR 	= 0,
-		currentColorG 	= 0,
-		currentColorB 	= 0,
-		objHasOriginalColor = true;
-
-// mouse movement and hover
+// track mouse movement
+// change color on hover
 window.addEventListener('mousemove', onMouseMove, false);
 function onMouseMove(ev) {
 	var sidebarWidth  	= sidebar.offsetWidth,
@@ -163,48 +131,74 @@ function onMouseMove(ev) {
 
 	if(intersectsLength > 0) {
 		for( var i = 0; i < intersectsLength; i++) {
-			var intersection = intersects[i];
+			var intersection = intersects[0];
 
-			intersectionObj = intersection.object;
-
-			console.log(currentColorG);
+			intersectionObj 	= intersection.object;
+			intersectionObjId = intersectionObj.id;
 
 			if( intersectionObj ) {
 				if( objHasOriginalColor == true ) {
 					currentColorR 	= intersectionObj.material.color.r,
 					currentColorG 	= intersectionObj.material.color.g,
 					currentColorB 	= intersectionObj.material.color.b;
-				}
 
-				console.log(currentColorR + '-' + currentColorG + '-' + currentColorB);
-				intersectionObj.material.color.setRGB(1.0 - i / intersects.length, 1.0, 1.0);
-				objHasOriginalColor = false; 
-				SOCKET.emit('tweet-selected', intersectionObj);
-			} else {
-				console.log('no intersection');
-			}
+					intersected = { objID :intersectionObjId, R: currentColorR, G: currentColorG, B: currentColorB }
+					
+					intersectionObj.material.color.setRGB(1.0 - i / intersects.length, 1.0, 1.0);
+					objHasOriginalColor = false; 
+					SOCKET.emit('tweet-selected', intersectionObj);
+				} else {
+					// RESET?
+					//scene.getObjectById(intersected.objID).material.color.setRGB(intersected.R, intersected.G, intersected.B);
+					//objHasOriginalColor = true; 
+				}
+			} 
 		}
 	}
 
 	if(intersectionObj && intersectsLength == 0) {
-		intersectionObj.material.color.setRGB(currentColorR, currentColorG, currentColorB);
-		objHasOriginalColor = true; 
+		if(intersected.objID !== 'undefined') {
+			scene.getObjectById(intersected.objID).material.color.setRGB(intersected.R, intersected.G, intersected.B);
+			objHasOriginalColor = true; 
+		}
 	}
 }
 
-function updateTweetsPosition(tweetsObj) {
-	var nowTimestamp = Date.now(),
-			counter = tweetsObj.length,
-			position = new THREE.Vector3();
+// Set initial tweet object position in space
+function initTweetObjPosition() {
+	var radius = 200,
+			step   = 360/(Math.random() * 360),
+			initialPosition = {};
 
-	while(counter--) {
-		if(tweetsObj[counter]) {
-			// tweetsObj[counter].position.z -= 0.2;
-			tweetsObj[counter].translateZ( -0.2 );
+	initialPosition.posX = Math.cos(step) * radius;
+	initialPosition.posY = Math.sin(step) * radius;
+
+	return initialPosition;
+}
+
+// Update tweet position and expand its orbit
+function updateTweetsAndOrbitPosition(tweetsObj, orbitsObj) {
+	var tweetsCounter = tweetsObj.length,
+			orbitsCounter = orbitsObj.length,
+			position 			= new THREE.Vector3();
+
+	while(tweetsCounter--) {
+		if( tweetsObj[tweetsCounter] ) {
+			var currentTweet = tweetsObj[tweetsCounter],
+					currentOrbit = orbitsObj[tweetsCounter];
+
+			currentTweet.translateZ( -0.2 );
+
+			if( currentOrbit !== 'undefined' ) {
+				currentOrbit.scale.x = currentOrbit.scale.x + 0.001;
+				currentOrbit.scale.y = currentOrbit.scale.y + 0.001;
+				currentOrbit.scale.z = currentOrbit.scale.z + 0.001;
+			}
 			
-			if(tweetsObj[counter].position.z < -10000) {
-				parentMesh.remove( tweetsObj[counter] );
-				// delete tweetsObj[counter];
+			if(currentTweet.position.z < -10000) {
+				parentMesh.remove( currentTweet );
+				parentOrbitMesh.remove( currentOrbit );
+				// delete tweetsObj[tweetsCounter];
 			}
 		}
 	}
@@ -315,11 +309,35 @@ SOCKET.on('streaming-response', function(response) {
 	tweetObj.userData['followers'] = response['followers'];
 	tweetObj.userData['hashtags']  = response['hashtags'];
 	tweetObj.userData['retweetted_id'] = response.retweetted_ID.id || undefined;
-	tweetObj.position.set(tweetPosition.posX, tweetPosition.posY, posZ);
-	tweetObj.rotation.x = (Math.random() * 360) * (Math.PI * 180);
+	tweetObj.position.set( tweetPosition.posX, tweetPosition.posY, posZ);
+	tweetObj.lookAt( new THREE.Vector3(0, 0, 0) );
+	//tweetObj.rotation.x = (Math.random() * 360) * (Math.PI * 180);
 	parentMesh.add(tweetObj);
 
 	linkRetweets(tweetObj, parentMesh.children);
+
+	// orbit
+	var circleMaterial = new THREE.LineBasicMaterial({
+		color 			: 0xffffff,
+		transparent : true,
+		linewidth   : 0.5,
+		opacity 		: 0.17
+	});
+	var circleRadius 	 = 200;
+	var circleSegments = 72;
+	var circleGeometry = new THREE.CircleGeometry( circleRadius, circleSegments );				
+	var circle = new THREE.Line( circleGeometry, circleMaterial );
+	// Remove center vertex
+	circleGeometry.vertices.shift();
+	circle.position.x = 0;
+	circle.position.y = 0;
+	circle.rotation.x = tweetObj.position.x;
+	circle.rotation.y = tweetObj.position.y;
+	// var a = new THREE.Euler( 0, 1, Math.random() * 10, 'XYZ' );
+	// circle.applyEuler( a );
+	// circle.lookAt( new THREE.Vector3(0, 0, 0) );
+	// circle.name = "circleName" + index;
+	parentOrbitMesh.add( circle );
 
 });
 

@@ -83,16 +83,6 @@ function init() {
 		} 
 	);
 
-	// circle
-	var circleMaterial = new THREE.MeshBasicMaterial({
-		color: 0x0000ff
-	});
-
-	var circleRadius = 5;
-	var circleSegments = 32;
-	var circleGeometry = new THREE.CircleGeometry( circleRadius, circleSegments );				
-	var circle = new THREE.Mesh( circleGeometry, circleMaterial );
-	scene.add( circle );
 
 	var g = new THREE.IcosahedronGeometry(5, 0);
 	var sphere0   = new THREE.Mesh( geometry, materal );
@@ -111,6 +101,23 @@ function init() {
 		sss.position.y = posY;
 		sss.name = "objectName" + index;
 		sss.lookAt( new THREE.Vector3(0, 0, 0) );
+
+
+		// circle
+		var circleMaterial = new THREE.LineBasicMaterial({
+			color: 0x0000ff
+		});
+		var circleRadius = 200;
+		var circleSegments = 64;
+		var circleGeometry = new THREE.CircleGeometry( circleRadius, circleSegments );				
+		var circle = new THREE.Line( circleGeometry, circleMaterial );
+		// Remove center vertex
+		circleGeometry.vertices.shift();
+		circle.position.x = 0;
+		circle.position.y = 0;
+		circle.lookAt( new THREE.Vector3(0, 0, 0) );
+		circle.name = "circleName" + index;
+		parentMesh2.add( circle );
 
 		parentMesh2.add(sss);
 	}
@@ -161,7 +168,7 @@ function onDocumentMouseMove(event) {
 function render() {
 	renderer.render( scene, camera );
 }
-
+var j = 0;
 function animate() {
 	animation = requestAnimationFrame(function() {
 		animate();
@@ -170,8 +177,13 @@ function animate() {
 
 	for(var i = 0; i <= 10; i++) {
 		var object = parentMesh2.getObjectByName( "objectName" + i);
+		var orbit  = parentMesh2.getObjectByName( "circleName" + i);
 		//object.translateX( 0.1 );
 		object.translateZ( -0.2 );
+
+		orbit.scale.x = orbit.scale.x + 0.001;
+		orbit.scale.y = orbit.scale.y + 0.001;
+		orbit.scale.z = orbit.scale.z + 0.001;
 	}
 
 	render();
