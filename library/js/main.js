@@ -189,7 +189,7 @@ function updateTweetsAndOrbitPosition(tweetsObj, orbitsObj) {
 
 			currentTweet.translateZ( -0.2 );
 
-			if( currentOrbit !== 'undefined' ) {
+			if( currentOrbit !== undefined ) {
 				currentOrbit.scale.x = currentOrbit.scale.x + 0.001;
 				currentOrbit.scale.y = currentOrbit.scale.y + 0.001;
 				currentOrbit.scale.z = currentOrbit.scale.z + 0.001;
@@ -198,7 +198,6 @@ function updateTweetsAndOrbitPosition(tweetsObj, orbitsObj) {
 			if(currentTweet.position.z < -10000) {
 				parentMesh.remove( currentTweet );
 				parentOrbitMesh.remove( currentOrbit );
-				// delete tweetsObj[tweetsCounter];
 			}
 		}
 	}
@@ -321,22 +320,31 @@ SOCKET.on('streaming-response', function(response) {
 		color 			: 0xffffff,
 		transparent : true,
 		linewidth   : 0.5,
-		opacity 		: 0.17
+		opacity 		: 0.5
 	});
 	var circleRadius 	 = 200;
 	var circleSegments = 72;
-	var circleGeometry = new THREE.CircleGeometry( circleRadius, circleSegments );				
-	var circle = new THREE.Line( circleGeometry, circleMaterial );
+	var circleGeometry = new THREE.CircleGeometry( circleRadius, circleSegments );		
 	// Remove center vertex
-	circleGeometry.vertices.shift();
-	circle.position.x = 0;
-	circle.position.y = 0;
-	circle.rotation.x = tweetObj.position.x;
-	circle.rotation.y = tweetObj.position.y;
-	// var a = new THREE.Euler( 0, 1, Math.random() * 10, 'XYZ' );
-	// circle.applyEuler( a );
-	// circle.lookAt( new THREE.Vector3(0, 0, 0) );
-	// circle.name = "circleName" + index;
+	circleGeometry.vertices.shift();		
+
+	var circle = new THREE.Line( circleGeometry, circleMaterial );
+	circle.lookAt(0, 0, 0);
+	
+	// set circle position
+	var circlePos 			 = new THREE.Vector3();
+	var circleQuaternion = new THREE.Quaternion();
+	var circleScale = new THREE.Vector3();
+	tweetObj.matrixWorld.decompose( circlePos, circleQuaternion, circleScale);
+	circlePos.setFromMatrixPosition( tweetObj.matrixWorld );
+	tweetObj.updateMatrixWorld( true );
+
+	circle.quaternion.copy(circleQuaternion);
+	circle.position.x = circlePos.x;
+	circle.position.y = circlePos.y;
+	circle.position.z = circlePos.z;
+	//circle.rotation.x = tweetObj.position.x;
+	//circle.rotation.y = tweetObj.position.y;
 	parentOrbitMesh.add( circle );
 
 });

@@ -51,10 +51,11 @@ possible_values = { 'positive' : 1, 'neutral' : 0, 'negative' : -1 }
 # 1. PROCESS SEARCH DATA
 now_timestamp = int(time.time())
 for tweet in sys.stdin:
-	json_data =  json.loads(tweet)
+	json_data  =  json.loads(tweet)
+
 	for i, j in enumerate(json_data):
 		tweet_text 					= json_data[i]['text']
-		tweet_birth_ts			= json_data[i]['timestamp_ms']
+		tweet_birth_ts			= json_data[i].get('timestamp_ms', now_timestamp)
 		tweet_hashtags 			= json_data[i]['entities']['hashtags']
 		tweet_popularity 		= json_data[i]['retweet_count']
 		user_followers			= json_data[i]['user']['followers_count']
