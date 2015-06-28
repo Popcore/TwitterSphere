@@ -26,18 +26,17 @@ var streamData = function(SOCKET) {
 
 	SOCKET.on('query-init', function(data) {
 
-		var that = this;
-
 		// augment query data 
 		this.queryData = data;
-		var keyword = this.queryData.queryKeyword;
+		var keyword    = this.queryData.queryKeyword,
+		 		location 	 = this.queryData.queryLocation,
+				dataArray  = [],
+				dataToPass = [];
 
 		console.log(keyword);
 
 		t.search(keyword, { 'count' : 15, 'lang' : 'en', 'result_type' : 'recent' }, function(data) { 
 
-			var dataArray = [],
-					dataToPass = [];
 			pyScript = new PythonShell('tweet_analysis.py', pySettings);
 
 			// pass data to script
@@ -92,13 +91,14 @@ var streamData = function(SOCKET) {
 	SOCKET.on('query-init-completed', function() {
 
 		var queryKeyword 	 = this.queryData.queryKeyword,
+				queryLocation  = this.queryData.queryLocation,
 				processedTData = this.processTwitterData,
 				geometryData 	 = this.dataArray,
 				that 					 = this;
 		
 		t.stream(
 			'statuses/filter',
-			{ track: [ queryKeyword ] },
+			{ /*track: [ queryKeyword ],*/ locations: [-122.75,36.8,-121.75,37.8] },
 			function(stream) {
 				stream.on('data', function(data) {
 					t.currentTwitStream = stream;
@@ -117,6 +117,7 @@ var streamData = function(SOCKET) {
 
 					// end stream and exit process
 					pyScript.end(function(err) {
+
 						if(err) { console.log(err); }
 
 						// map audience to range

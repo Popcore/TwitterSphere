@@ -22,9 +22,6 @@ var animation = null,
 		cameraNear = 1,
 		cameraFar = 10000,
 		frame = 0,
-		neutralPosXBand,
-		positivePosXBand,
-		negativePosXBand,
 		vv = new THREE.Vector3(), // use for mouse projection
 		intersectionObj = undefined, // mouse intersection object
 	  currentColorR 	= 0,
@@ -209,7 +206,6 @@ function linkRetweets(tweetsObj, tweetsList) {
 
 	if(tweetsObjRetweetID !== undefined) {
 		while(tweetsCounter--) {
-			console.log('retweet ID: ' + tweetsList[tweetsCounter].userData['tweet_id']);
 
 			if(tweetsObjRetweetID === tweetsList[tweetsCounter].userData['tweet_id']) {
 
@@ -245,6 +241,23 @@ function linkRetweets(tweetsObj, tweetsList) {
 	}
 }
 
+// set tweet color based on sentiment
+function setTweetObjColor(sentiment, THREEColor) {
+	switch( sentiment ) {
+		case 'neutral':
+			THREEColor.setRGB(1, 0, 0);
+		break;
+		case 'positive':
+			THREEColor.setRGB(1, 1, 0);
+		break;
+		case 'negative':
+			THREEColor.setRGB(0, 1, 1);
+		break;
+		default:
+			THREEColor.setRGB(1, 1, 1);
+	}
+}
+
 init();
 
 window.onload = animate();
@@ -263,33 +276,20 @@ SOCKET.on('query-init-response', function(response) {
 */
 SOCKET.on('streaming-response', function(response) {
 
-	var	posZ 		= 0,
-	 		radius  = response.audience,
-	 		sentiment = response['sentiment'],
-	 		color   = new THREE.Color( 0xffffff ),
-	 		bandLength = Math.abs(neutralPosXBand),
-	 		tweetPosition = initTweetObjPosition();
+	var	posZ 							 = 0,
+	 		radius  					 = response.audience,
+	 		sentiment  				 = response['sentiment'],
+	 		color   					 = new THREE.Color( 0xffffff ),
+	 		tweetPosition 		 = initTweetObjPosition(),
+	 		tweetObjPos 			 = new THREE.Vector3(),
+			tweetObjQuaternion = new THREE.Quaternion(),
+			tweetObjScale 		 = new THREE.Vector3();
 
-	// set color and position bands
-	switch( response['sentimentString'] ) {
-		case 'neutral':
-			color.setRGB(1, 0, 0);
-			posX = neutralPosXBand + (Math.random() * bandLength);
-		break;
-		case 'positive':
-			color.setRGB(1, 1, 0);
-			posX = positivePosXBand + (Math.random() * bandLength);
-		break;
-		case 'negative':
-			color.setRGB(0, 1, 1);
-			posX = negativePosXBand + (Math.random() * bandLength);
-		break;
-		default:
-			color.setRGB(1, 1, 1);
-			posX = neutralPosXBand + (Math.random() * bandLength);
-	}
-
+	// increase element counter
 	elemCounter++;
+
+	// set tweet color
+	setTweetObjColor(response['sentimentString'], color);	
 
 	var geometry = new THREE.IcosahedronGeometry(radius, 0);
 	var	materal  = new THREE.MeshLambertMaterial(
@@ -331,20 +331,16 @@ SOCKET.on('streaming-response', function(response) {
 	var circle = new THREE.Line( circleGeometry, circleMaterial );
 	circle.lookAt(0, 0, 0);
 	
-	// set circle position
-	var circlePos 			 = new THREE.Vector3();
-	var circleQuaternion = new THREE.Quaternion();
-	var circleScale = new THREE.Vector3();
-	tweetObj.matrixWorld.decompose( circlePos, circleQuaternion, circleScale);
-	circlePos.setFromMatrixPosition( tweetObj.matrixWorld );
+	// set circle position and rotation accordint to tweet obj
+	tweetObj.matrixWorld.decompose( tweetObjPos, tweetObjQuaternion, tweetObjScale);
+	//circlePos.setFromMatrixPosition( tweetObj.matrixWorld );
 	tweetObj.updateMatrixWorld( true );
 
-	circle.quaternion.copy(circleQuaternion);
-	circle.position.x = circlePos.x;
-	circle.position.y = circlePos.y;
-	circle.position.z = circlePos.z;
-	//circle.rotation.x = tweetObj.position.x;
-	//circle.rotation.y = tweetObj.position.y;
+	circle.quaternion.copy( tweetObjQuaternion );
+	circle.position.copy( tweetObjPos );
+	//circle.position.x = circlePos.x;
+	//circle.position.y = circlePos.y;
+	//circle.position.z = circlePos.z;
 	parentOrbitMesh.add( circle );
 
 });

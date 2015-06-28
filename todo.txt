@@ -1,15 +1,13 @@
 TO DO LIST
-=> Add ring
+=> add form to build query
 => Reset camera button
 => Position tweets on 360 radius
 => add more tweet sample to py script. 200/250 each sentiment
 => clean up js
-=> add form to build query
 => add colours
 => add labels
 => RESET: on stop -> reset -> restart query 3d obj doesn't rebuild but startfrom last state
 
 
 BUGS 
-=> mapToMaxData not WORKING PROPERLY!
 => restart app if crashes

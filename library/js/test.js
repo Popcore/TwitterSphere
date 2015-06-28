@@ -11,8 +11,6 @@ var animation = null,
 		mesh,
 		parentMesh,
 		parentMesh2,
-		// set true to enable raycaster for mouse over objs
-		mouseInteraction = false,
 		sphere,
 		controls,
 		projector,

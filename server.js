@@ -1,4 +1,5 @@
 var express 		= require('express'),
+		favicon     = require('express-favicon'),
 		http				= require('http'),
 		path 				= require('path'),
 		twitter 		= require('twitter'),
@@ -14,6 +15,7 @@ app.set('port', process.env.PORT || 8006);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 app.use(express.static(path.join(__dirname, 'library')));
+//app.use(favicon(__dirname + 'library/images/favicons/favicon.ico'));
 
 // routes
 require('./routes.js')(app);
