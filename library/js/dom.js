@@ -62,10 +62,10 @@ var Helpers = ( function() {
 					var responselength = response.results.length;
 
 					if(responselength === 1) {
-						var southWestLat = Math.round(response.results[0].geometry.bounds.southwest.lat),
-								southWestLng = Math.round(response.results[0].geometry.bounds.southwest.lng),
-						 		northEastLat = Math.round(response.results[0].geometry.bounds.northeast.lat),
-						 		northEastLng = Math.round(response.results[0].geometry.bounds.northeast.lng);
+						var southWestLat = response.results[0].geometry.bounds.southwest.lat,
+								southWestLng = response.results[0].geometry.bounds.southwest.lng,
+						 		northEastLat = response.results[0].geometry.bounds.northeast.lat,
+						 		northEastLng = response.results[0].geometry.bounds.northeast.lng;
 						
 						responseCoordinates = {
 							runQuery : true,
@@ -79,20 +79,20 @@ var Helpers = ( function() {
 						coordinates = [];
 						for(var j = 0; j < responselength; j++) {
 							if(response.results[j].geometry.bounds !== undefined) {
-								var southWestLat = Math.round(response.results[j].geometry.bounds.southwest.lat),
-									southWestLng = Math.round(response.results[j].geometry.bounds.southwest.lng),
-						 			northEastLat = Math.round(response.results[j].geometry.bounds.northeast.lat),
-						 			northEastLng = Math.round(response.results[j].geometry.bounds.northeast.lng);
+								var southWestLat = response.results[j].geometry.bounds.southwest.lat,
+									southWestLng = response.results[j].geometry.bounds.southwest.lng,
+						 			northEastLat = response.results[j].geometry.bounds.northeast.lat,
+						 			northEastLng = response.results[j].geometry.bounds.northeast.lng;
 
 							  coordinates.push({
 									southWest : southWestLng.toString() + ',' + southWestLat.toString(),
 									northEast : northEastLng.toString() + ',' + northEastLat.toString()
 								});
 							} else {
-								var southWestLat = Math.round(response.results[j].geometry.viewport.southwest.lat),
-										southWestLng = Math.round(response.results[j].geometry.viewport.southwest.lng),
-						 				northEastLat = Math.round(response.results[j].geometry.viewport.northeast.lat),
-						 				northEastLng = Math.round(response.results[j].geometry.viewport.northeast.lng);
+								var southWestLat = response.results[j].geometry.viewport.southwest.lat,
+										southWestLng = response.results[j].geometry.viewport.southwest.lng,
+						 				northEastLat = response.results[j].geometry.viewport.northeast.lat,
+						 				northEastLng = response.results[j].geometry.viewport.northeast.lng;
 
 								coordinates.push({
 									southWest : southWestLng.toString() + ',' + southWestLat.toString(),
@@ -163,6 +163,7 @@ jQuery(document).ready(function($) {
 				submitButton.addClass('reset');
 				submitButton.attr('value', 'RESET');
 
+				console.log('QUERY BY KEYWORD');
 				Query.initQuery(queryVar);
 
 			} else if( $('input#location').val() !== undefined ) {
@@ -178,7 +179,8 @@ jQuery(document).ready(function($) {
 				if( locationCoordinates !== undefined && locationCoordinates.runQuery == true ) {
 				 	var queryString = locationCoordinates.coordinates.southWest + ',' + locationCoordinates.coordinates.northEast;
 				 	console.log(queryString);
-				 	Query.initQuery(queryString);
+				 	console.log('QUERY BY LOCATION');
+				 	Query.locationQuery(queryString);
 				}
 
 			} else {
@@ -191,16 +193,14 @@ jQuery(document).ready(function($) {
 	// init/reset query event > multiple addresses
 	$('body').on('change', 'div#address-selector', function(ev) {
 		ev.preventDefault();
-		console.log('multiple shit');
 
 		var $this = $(this);
 		var index = $this.find(':selected').data('index');
 		
-		//if( locationCoordinates.runQuery == true ) {
-		 	var queryString = locationCoordinates.coordinates[index].southWest + ',' + locationCoordinates.coordinates[index].northEast;
-		 	console.log(queryString);
-		 	Query.initQuery(queryString);
-		//} 
+		var queryString = locationCoordinates.coordinates[index].southWest + ',' + locationCoordinates.coordinates[index].northEast;
+		console.log(queryString);
+		console.log('QUERY BY LOCATION > Multiple');
+		Query.locationQuery(queryString);
 
 		$this.remove();
 

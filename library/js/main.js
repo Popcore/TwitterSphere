@@ -192,7 +192,8 @@ function updateTweetsAndOrbitPosition(tweetsObj, orbitsObj) {
 				currentOrbit.scale.z = currentOrbit.scale.z + 0.001;
 			}
 			
-			if(currentTweet.position.z < -10000) {
+			if(Math.abs(currentTweet.position.x) > 1000) {
+				console.log('remove');
 				parentMesh.remove( currentTweet );
 				parentOrbitMesh.remove( currentOrbit );
 			}
@@ -269,6 +270,12 @@ SOCKET.on('query-init-response', function(response) {
 	scene.remove(sphere);
 	animate();
 	SOCKET.emit('query-init-completed');
+});
+
+SOCKET.on('query-init-response2', function(response) {
+	scene.remove(sphere);
+	animate();
+	SOCKET.emit('query-location-init-completed');
 });
 
 /*

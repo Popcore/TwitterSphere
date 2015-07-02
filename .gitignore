@@ -4,3 +4,4 @@ Inspiration/*
 venv/bin
 venv/lib
 venv/include
+node_modules/*

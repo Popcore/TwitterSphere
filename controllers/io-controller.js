@@ -73,32 +73,83 @@ var streamData = function(SOCKET) {
 					dataToPass.push(obj);
 				}
 
-				// map audience to range
-				//var mappedData = helpers.mapToMaxData(0, 20, dataToPass, 'audience', 'influence');
-
-				// map age to range
-				//mappedData = helpers.mapToMaxData(0, 20, dataToPass, 'age');
-
-				// augment twitter data property
-				//that.processTwitterData = mappedData;
-
 				// emit data array
 				SOCKET.emit('query-init-response', dataToPass);
 			});
 		});
 	});
 
+	SOCKET.on('query-by-locationaaaa', function(data) {
+		SOCKET.emit('query-init-response2');
+	});
+
+	SOCKET.on('query-by-location', function(data) {
+
+		var locationCoordinatesToQUery = data;
+		console.log("hello location => " + locationCoordinatesToQUery);
+
+		t.stream(
+			'statuses/filter',
+			{ locations: [ locationCoordinatesToQUery ] },
+			//-122.75,36.8,-121.75,37.8
+			function(stream) {
+				stream.on('data', function(data) {
+					t.currentTwitStream = stream;
+					console.log(data);
+					var tweetObj = {};
+
+					// init python script
+					pyScript = new PythonShell('tweet_analysis.py', pySettings);
+					pyScript.send(Array(data));
+					pyScript.on('message', function(message) {
+						// response from python script
+						for(var i in message) {
+							tweetObj[i] = message[i];
+						}
+					});
+
+					// end stream and exit process
+					pyScript.end(function(err) {
+
+						if(err) { console.log(err); }
+
+						// map audience to range
+						// cap max size
+						var normalizedAudience = helpers.normailzeToRange(20, 100, 0, 9999, tweetObj['user_followers']);
+
+						console.log('real number = ' + tweetObj['user_followers']);
+						console.log('audience radius =' + normalizedAudience);
+
+						var pyObj = {
+							tweetID 				: tweetObj['tweet_id'],
+							text 						: tweetObj['tweet_text'],
+							age 						: tweetObj['tweet_age'] / 3600, // Z Pos 
+							sentiment 			: tweetObj['tweet_sentiment_int'] + Math.random() * 10, // X Pos
+							audience				: normalizedAudience, // Y Pos + radius
+							followers 			: tweetObj['user_followers'],
+							retweets_number : tweetObj['tweet_popularity'],
+							sentimentString	: tweetObj['tweet_sentiment_str'],
+							retweetted_ID		: tweetObj['retweet'],
+							hashtags				: tweetObj['tweet_hashtags'],
+							alfio 					: 'muschio'
+						}
+
+						// emit data array
+						SOCKET.emit('streaming-response', pyObj);
+
+					});
+				});
+			}
+		);
+	});
+
 	SOCKET.on('query-init-completed', function() {
 
-		var queryKeyword 	 = this.queryData.queryKeyword,
-				queryLocation  = this.queryData.queryLocation,
-				processedTData = this.processTwitterData,
-				geometryData 	 = this.dataArray,
-				that 					 = this;
+		var queryKeyword 	 = this.queryData.queryKeyword;
 		
 		t.stream(
 			'statuses/filter',
-			{ /*track: [ queryKeyword ],*/ locations: [-122.75,36.8,-121.75,37.8] },
+			{ track: [ queryKeyword ] },
 			function(stream) {
 				stream.on('data', function(data) {
 					t.currentTwitStream = stream;
