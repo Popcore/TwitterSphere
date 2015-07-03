@@ -1,12 +1,17 @@
 TO DO LIST
-=> add form to build query
+=> clean up css
+=> delete tweets and orbits if fall beyond radius
 => Reset camera button
-=> Position tweets on 360 radius
+=> query-init fa un lavoro di merda:
+	 e' usata in controller.js, fa lavoro inutile,
+	 poi chiama query-init-response che inizia lo streaming
 => add more tweet sample to py script. 200/250 each sentiment
 => clean up js
 => add colours
 => add labels
+=> add d3js mood chart
 => RESET: on stop -> reset -> restart query 3d obj doesn't rebuild but startfrom last state
+=> RETYPE: address before submitting not refreshing results from google API
 
 
 BUGS 

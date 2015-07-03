@@ -9,7 +9,7 @@ var Query = (function() {
  	return {
  		// init query handler
 	 	initQuery : function(data) {
-			SOCKET.emit('query-init', data);
+			SOCKET.emit('query-init-completed', data);
 		},
 
 		// location query handler
@@ -208,7 +208,6 @@ jQuery(document).ready(function($) {
 
 
 	SOCKET.on('display-tweet-info', function(data) {
-		//console.log(data.object.userData.text);
 
 		var tweetData 	 = data.object.userData,
 				tweetContent = tweetData.text,
@@ -221,10 +220,10 @@ jQuery(document).ready(function($) {
 
 		// append data to DOM
 		// => it screws up the mouse tracking position
-		$('DIV#tweet-info-container').html('<p>' + 
+		$('DIV#tweet-info-container').slideToggle(100).html('<p class="tweet-content">' + 
 			'TWEET BODY:' + tweetContent + '<br>' +
 			'FOLLOWERS:' + followers + '<br>' +
-			'HASTAGS:' + hashtagsArr.join(', ') +
+			'HASHTAGS:' + hashtagsArr.join(', ') +
 			'</p>');
 	});	
 

@@ -12,24 +12,24 @@
 
 @font-face {
     font-family: 'din-lightregular';
-    src: url('../library/fonts/DIN_web/din-light-webfont.eot');
-    src: url('../library/fonts/DIN_web/din-light-webfont.eot?#iefix') format('embedded-opentype'),
-         url('../library/fonts/DIN_web/din-light-webfont.woff2') format('woff2'),
-         url('../library/fonts/DIN_web/din-light-webfont.woff') format('woff'),
-         url('../library/fonts/DIN_web/din-light-webfont.ttf') format('truetype'),
-         url('../library/fonts/DIN_web/din-light-webfont.svg#din-lightregular') format('svg');
+    src: url('../fonts/DIN_web/din-light-webfont.eot');
+    src: url('../fonts/DIN_web/din-light-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/DIN_web/din-light-webfont.woff2') format('woff2'),
+         url('../fonts/DIN_web/din-light-webfont.woff') format('woff'),
+         url('../fonts/DIN_web/din-light-webfont.ttf') format('truetype'),
+         url('../fonts/DIN_web/din-light-webfont.svg#din-lightregular') format('svg');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'din-regularregular';
-    src: url('../library/fonts/DIN_web/din-regular-webfont.eot');
-    src: url('../library/fonts/DIN_web/din-regular-webfont.eot?#iefix') format('embedded-opentype'),
-         url('../library/fonts/DIN_web/din-regular-webfont.woff2') format('woff2'),
-         url('../library/fonts/DIN_web/din-regular-webfont.woff') format('woff'),
-         url('../library/fonts/DIN_web/din-regular-webfont.ttf') format('truetype'),
-         url('../library/fonts/DIN_web/din-regular-webfont.svg#din-regularregular') format('svg');
+    src: url('../fonts/DIN_web/din-regular-webfont.eot');
+    src: url('../fonts/DIN_web/din-regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/DIN_web/din-regular-webfont.woff2') format('woff2'),
+         url('../fonts/DIN_web/din-regular-webfont.woff') format('woff'),
+         url('../fonts/DIN_web/din-regular-webfont.ttf') format('truetype'),
+         url('../fonts/DIN_web/din-regular-webfont.svg#din-regularregular') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -77,6 +77,17 @@ header {
   top: 45px;
   z-index: 999;
   background-color: rgba(1, 1, 1, 0.5);
+  display: none;
+}
+
+.visible-pane {
+	display: block !important;
+}
+
+.tweet-content {
+	font-size: 13px;
+	font-family: 'din-lightregular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	padding: 0 10px;
 }
 
 img#toggle-menu {

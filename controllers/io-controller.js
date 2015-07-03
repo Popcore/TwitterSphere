@@ -24,65 +24,6 @@ var IO 			= null;
 
 var streamData = function(SOCKET) {
 
-	SOCKET.on('query-init', function(data) {
-
-		// augment query data 
-		this.queryData = data;
-		var keyword    = this.queryData.queryKeyword,
-		 		location 	 = this.queryData.queryLocation,
-				dataArray  = [],
-				dataToPass = [];
-
-		console.log(keyword);
-
-		t.search(keyword, { 'count' : 15, 'lang' : 'en', 'result_type' : 'recent' }, function(data) { 
-
-			pyScript = new PythonShell('tweet_analysis.py', pySettings);
-
-			// pass data to script
-			pyScript.send(data['statuses']);
-
-			// handle response from py
-			pyScript.on('message', function(message) {
-
-				var tweetData = {}
-				for( var i in message ) {
-					tweetData[i] = message[i];
-				}
-
-				dataArray.push(tweetData);
-				return dataArray;
-			});
-
-			// end stream and exit process
-			pyScript.end(function(err) {
-
-				if(err) { console.log(err); }
-
-				for (var j = 0; j < dataArray.length; j++) {
-					var obj = {};
-					obj['sentiment']	=	(dataArray[j]['tweet_sentiment_int'] * Math.random() * 10); // Pos X	
-					obj['age']				=	dataArray[j]['tweet_age'] / 3600;														// Pos Z
-					obj['audience']		=	dataArray[j]['user_followers'];															// Pos Y		
-					obj['retweet']		= dataArray[j]['tweet_popularity'];														// Surface (min 1)	
-					obj['sentimentString']  = dataArray[j]['tweet_sentiment_str'];
-					obj['text']  			= dataArray[j]['tweet_text'];
-					obj['hastags']  	= dataArray[j]['tweet_hashtags'];
-					obj['id']					= dataArray[j]['tweet_id'];
-
-					dataToPass.push(obj);
-				}
-
-				// emit data array
-				SOCKET.emit('query-init-response', dataToPass);
-			});
-		});
-	});
-
-	SOCKET.on('query-by-locationaaaa', function(data) {
-		SOCKET.emit('query-init-response2');
-	});
-
 	SOCKET.on('query-by-location', function(data) {
 
 		var locationCoordinatesToQUery = data;
@@ -143,9 +84,11 @@ var streamData = function(SOCKET) {
 		);
 	});
 
-	SOCKET.on('query-init-completed', function() {
+	SOCKET.on('query-init-completed', function(data) {
 
-		var queryKeyword 	 = this.queryData.queryKeyword;
+		var queryKeyword = data.queryKeyword;
+
+		console.log(queryKeyword);
 		
 		t.stream(
 			'statuses/filter',
