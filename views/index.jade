@@ -87,8 +87,10 @@ html(lang="eng")
 				input(type='text', class="user-query-data", id='keyword', name='keyword', placeholder='Keyword')
 				input(type='text', class="user-query-data", id='location', name='location', placeholder='Location')
 				//- input(type='text', class="user-query-data", id='user', name='user', placeholder='User')
-				
 				input(type='submit', class="hidden-el", id='start-query', value='EXPLORE')
+
+			div#mood-info
+				//svg
 		
 
 		header#top-header
@@ -102,10 +104,12 @@ html(lang="eng")
 
 		footer
 			script(src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js")
+			script(src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js")
 			script(src="/socket.io/socket.io.js")
 			script(type='text/javascript').
 				var SOCKET = io();
 			script(src="/js/libraries/three.min.js" id="vertexShader")
 			script(src="/js/libraries/trackball.js")
-			script(src="/js/main.js")
+			script(src="/js/threejs-app.js")
+			script(src="/js/d3-graph.js")
 			script(src="/js/dom.js")
