@@ -11,6 +11,7 @@ var animation = null,
 		mesh,
 		parentMesh,
 		parentOrbitMesh,
+		parentRetweetConnections,
 		sphere,
 		controls,
 		mouseVector = new THREE.Vector3(),
@@ -70,6 +71,10 @@ function init() {
 	// orbits parent mesh
 	parentOrbitMesh = new THREE.Object3D();
 	scene.add( parentOrbitMesh );
+
+	// retweet connection
+	parentRetweetConnections = new THREE.Object3D();
+	scene.add( parentRetweetConnections );
 
 	// light 
 	var light    = new THREE.AmbientLight( 0x404040 ); // soft white light
@@ -199,6 +204,12 @@ function updateTweetsAndOrbitPosition(tweetsObj, orbitsObj) {
 			}
 		}
 	}
+
+	// update retweet connections
+	var retweetLinesCounter = parentRetweetConnections.children.length
+	while( retweetLinesCounter-- ) {
+		parentRetweetConnections.children[retweetLinesCounter].geometry.verticesNeedUpdate = true;
+	}
 }
 
 function linkRetweets(tweetsObj, tweetsList) {
@@ -220,22 +231,9 @@ function linkRetweets(tweetsObj, tweetsList) {
 				lineGeometry.vertices.push(tweetsObj.position);
 				lineGeometry.vertices.push(tweetsList[tweetsCounter].position);
 
-				// enlarge original tweet mesh
 				var line = new THREE.Line(lineGeometry, material);
-				parentMesh.add(line);
+				parentRetweetConnections.add(line);
 				
-				var retweetGeometry = new THREE.IcosahedronGeometry(originalTweetRadius + 20, 0);
-				var	retweetMateral  = new THREE.MeshLambertMaterial(
-					{ color 			: 0x0000ff, 
-						shading 		: THREE.FlatShading,
-						transparent : true,
-						opacity 		: 0.5
-					} 
-				);
-				var retweetOuterObj = new THREE.Mesh( retweetGeometry, retweetMateral );
-				// tweetsList[tweetsCounter].add(retweetOuterObj);
-				retweetOuterObj.position.set( tweetsList[tweetsCounter].position.x, tweetsList[tweetsCounter].position.y, tweetsList[tweetsCounter].position.z );
-				parentMesh.add(retweetOuterObj);
 				break;
 			}
 		}
