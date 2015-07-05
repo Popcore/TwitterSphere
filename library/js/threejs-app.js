@@ -91,8 +91,7 @@ function init() {
 	renderer.setSize( container.offsetWidth, container.offsetHeight );
 	renderer.setClearColor(0x00000a, 1); 
 	container.appendChild( renderer.domElement ); 
-
-};
+}
 
 function render() {
 	renderer.render( scene, camera );
@@ -197,10 +196,12 @@ function updateTweetsAndOrbitPosition(tweetsObj, orbitsObj) {
 				currentOrbit.scale.z = currentOrbit.scale.z + 0.001;
 			}
 			
-			if(Math.abs(currentTweet.position.x) > 1000) {
+			if(currentOrbit.scale.x > 21) {
+				
+				// parentMesh.remove( currentTweet );
 				console.log('remove');
-				parentMesh.remove( currentTweet );
-				parentOrbitMesh.remove( currentOrbit );
+				deleteObj(currentTweet, parentMesh);
+				deleteObj(currentOrbit, parentOrbitMesh);
 			}
 		}
 	}
@@ -210,6 +211,10 @@ function updateTweetsAndOrbitPosition(tweetsObj, orbitsObj) {
 	while( retweetLinesCounter-- ) {
 		parentRetweetConnections.children[retweetLinesCounter].geometry.verticesNeedUpdate = true;
 	}
+}
+
+function deleteObj(obj, parent) {
+	parent.remove( obj );
 }
 
 function linkRetweets(tweetsObj, tweetsList) {
@@ -268,12 +273,6 @@ SOCKET.on('query-init-response', function(response) {
 	scene.remove(sphere);
 	animate();
 	SOCKET.emit('query-init-completed');
-});
-
-SOCKET.on('query-init-response2', function(response) {
-	scene.remove(sphere);
-	animate();
-	SOCKET.emit('query-location-init-completed');
 });
 
 /*
@@ -340,12 +339,8 @@ SOCKET.on('streaming-response', function(response) {
 	tweetObj.matrixWorld.decompose( tweetObjPos, tweetObjQuaternion, tweetObjScale);
 	//circlePos.setFromMatrixPosition( tweetObj.matrixWorld );
 	tweetObj.updateMatrixWorld( true );
-
 	circle.quaternion.copy( tweetObjQuaternion );
 	circle.position.copy( tweetObjPos );
-	//circle.position.x = circlePos.x;
-	//circle.position.y = circlePos.y;
-	//circle.position.z = circlePos.z;
 	parentOrbitMesh.add( circle );
 
 });

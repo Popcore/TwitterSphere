@@ -1,10 +1,6 @@
 TO DO LIST
 => clean up css
-=> delete tweets and orbits if fall beyond radius
 => Reset camera button
-=> query-init fa un lavoro di merda:
-	 e' usata in controller.js, fa lavoro inutile,
-	 poi chiama query-init-response che inizia lo streaming
 => add more tweet sample to py script. 200/250 each sentiment
 => clean up js
 => add colours
