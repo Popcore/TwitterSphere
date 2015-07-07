@@ -32,6 +32,7 @@ var Helpers = ( function() {
 	// private properties
 	var googleAPIUrl = 'http://maps.google.com/maps/api/geocode/json?address=';
 
+	// private methods
 	function displayAddressSelector(locations) {
 		var responselength = locations.length;
 		var toAppend = '<div id="address-selector"><select>';
@@ -46,7 +47,6 @@ var Helpers = ( function() {
 	}
 
 	return {
-
 		getLocationsCoordinates : function(locationName) {
 			var latitude,
 					longitude,
@@ -114,7 +114,6 @@ var Helpers = ( function() {
 			});
 			return responseCoordinates
 		}
-
 	}
 }());
 
@@ -125,15 +124,26 @@ jQuery(document).ready(function($) {
 
 	Query.resetQuery();
 
-	var locationCoordinates;
+	var locationCoordinates,
+	submitButton = $('input#start-query');
 
-	var submitButton 	= $('input#start-query');
 	// display submit button if form has values
 	$('input.user-query-data').on('keypress', function() {
-		if($('input.user-query-data').filter(function() { return $(this).val(); }).length > 0) {
+		if($('input.user-query-data').filter(function() { return $(this).val(); }).length >= 0) {
 			submitButton.removeClass('hidden-el');
 		} else {
 			submitButton.addClass('hidden-el');
+		}
+	});
+
+	// remove form values if click on different tweet
+	// allow 1 tyoe of query only
+	$('input[type=text]').on('click', function() {
+
+		if($(this).val() == '') {
+			$('input[type=text]').each(function() {
+				$(this).val('');
+			});
 		}
 	});
 	
@@ -162,8 +172,6 @@ jQuery(document).ready(function($) {
 				$this.addClass('reset');
 				submitButton.addClass('reset');
 				submitButton.attr('value', 'RESET');
-
-				console.log('QUERY BY KEYWORD');
 				Query.initQuery(queryVar);
 
 			} else if( $('input#location').val() !== undefined ) {
@@ -179,7 +187,6 @@ jQuery(document).ready(function($) {
 				if( locationCoordinates !== undefined && locationCoordinates.runQuery == true ) {
 				 	var queryString = locationCoordinates.coordinates.southWest + ',' + locationCoordinates.coordinates.northEast;
 				 	console.log(queryString);
-				 	console.log('QUERY BY LOCATION');
 				 	Query.locationQuery(queryString);
 				}
 

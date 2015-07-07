@@ -1,6 +1,5 @@
 TO DO LIST
 => clean up css
-=> Reset camera button
 => add more tweet sample to py script. 200/250 each sentiment
 => clean up js
 => add colours
