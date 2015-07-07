@@ -182,7 +182,34 @@ input#start-query.reset {
 	  width: 80%;
 	  border-radius: 0;
 	  background-color: #FFF;
- }
+}
+
+#address-selector #top-bar {
+	position: absolute;
+  top: 0;
+  width: 100%;
+  background-color: #FFF;
+  text-align: left;
+}
+
+#address-selector #top-bar span {
+	display: block;
+	width: 12px;
+	height: 12px;
+	box-sizing: border-box;
+	margin: 2px;
+	padding-top: 2px;
+	background-color: rgb(224, 58, 99);
+	-webkit-border-radius: 6px;
+	-moz-border-radius: 6px;
+	border-radius: 6px;
+	font-size: 7px;
+	color: #FFF;
+	text-align: center;
+	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-weight: lighter;
+	cursor: pointer;
+}
 
 .hidden-el {
 	display: none;

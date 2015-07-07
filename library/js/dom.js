@@ -35,13 +35,17 @@ var Helpers = ( function() {
 	// private methods
 	function displayAddressSelector(locations) {
 		var responselength = locations.length;
-		var toAppend = '<div id="address-selector"><select>';
-		toAppend += '<option disabled selected>SELECT LOCATION</location>';
+		var toAppend = '<div id="address-selector">';
+		toAppend += '<div id="top-bar"><span id="close"></span></div>';
+		toAppend += '<select>';
+		toAppend += '<option disabled selected>SELECT LOCATION</option>';
 
 		for(var i = 0; i < responselength; i++) {
 			toAppend += '<option data-index=' + i + '>' + locations[i].formatted_address + '</li>';
 		}
-		toAppend += '</select></div>';
+		toAppend += '</select>';
+		//toAppend += '<button class="cancel">CANCEL</button>';
+		toAppend += '</div>';
 
 		$('body').append(toAppend);
 	}
@@ -211,6 +215,13 @@ jQuery(document).ready(function($) {
 
 		$this.remove();
 
+	});
+
+	// hide location select and reset query field
+	$(document).on('click', 'span#close', function() {
+		console.log('close');
+		$('div#address-selector').remove();
+		$('input#location').val('');
 	});
 
 
