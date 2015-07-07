@@ -249,13 +249,13 @@ function linkRetweets(tweetsObj, tweetsList) {
 function setTweetObjColor(sentiment, THREEColor) {
 	switch( sentiment ) {
 		case 'neutral':
-			THREEColor.setRGB(1, 0, 0);
+			THREEColor.setRGB(244/255, 246/255, 216/255);
 		break;
 		case 'positive':
-			THREEColor.setRGB(1, 1, 0);
+			THREEColor.setRGB(65/255, 186/255, 236/255);
 		break;
 		case 'negative':
-			THREEColor.setRGB(0, 1, 1);
+			THREEColor.setRGB(226/255, 58/255, 99/255);
 		break;
 		default:
 			THREEColor.setRGB(1, 1, 1);

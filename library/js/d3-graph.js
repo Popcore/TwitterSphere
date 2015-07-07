@@ -7,7 +7,7 @@
 	];
 
 	var color = d3.scale.ordinal()
-  .range(['#7abfbf', '#f4f5d8', '#e03a63']); 
+  .range(['#41baec', '#f4f5d8', '#e03a63']); 
 
 	var svg = d3.select('#mood-info')
 		.append('svg')
