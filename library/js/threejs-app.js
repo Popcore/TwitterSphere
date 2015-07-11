@@ -53,9 +53,9 @@ function init() {
 	controls.addEventListener( 'change', render );
 
 	// center
-	var geometry = new THREE.IcosahedronGeometry(20, 0);
+	var geometry = new THREE.SphereGeometry(5, 32, 32);
 	var materal  = new THREE.MeshLambertMaterial(
-		{ color: 0x0000ff, 
+		{ color: 0xffffff, 
 			shading: THREE.FlatShading 
 		} 
 	);
@@ -155,6 +155,8 @@ function onMouseMove(ev) {
 				}
 			} 
 		}
+	} else {
+		SOCKET.emit('no-tweet-selected');
 	}
 
 	if(intersectionObj && intersectsLength == 0) {

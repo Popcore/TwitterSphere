@@ -126,7 +126,7 @@ var Helpers = ( function() {
 ***/
 jQuery(document).ready(function($) {
 
-	Query.resetQuery();
+	// Query.resetQuery();
 
 	var locationCoordinates,
 	submitButton = $('input#start-query');
@@ -225,6 +225,7 @@ jQuery(document).ready(function($) {
 	});
 
 
+	// display tweet info when object is selected
 	SOCKET.on('display-tweet-info', function(data) {
 
 		var tweetData 	 = data.object.userData,
@@ -238,12 +239,17 @@ jQuery(document).ready(function($) {
 
 		// append data to DOM
 		// => it screws up the mouse tracking position
-		$('DIV#tweet-info-container').slideToggle(100).html('<p class="tweet-content">' + 
+		$('div#tweet-info-container').slideToggle(100).html('<p class="tweet-content">' + 
 			'TWEET BODY:' + tweetContent + '<br>' +
 			'FOLLOWERS:' + followers + '<br>' +
 			'HASHTAGS:' + hashtagsArr.join(', ') +
 			'</p>');
 	});	
+
+	// hide tweet info on deselection
+	SOCKET.on('hide-tweet-info', function() {
+		$('div#tweet-info-container').hide(100);
+	});
 
 });
 

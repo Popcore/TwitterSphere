@@ -1,13 +1,10 @@
 TO DO LIST
-=> clean up css
+=> tweet text at top: remove on mouse out
 => add more tweet sample to py script. 200/250 each sentiment
 => clean up js
-=> add colours
-=> add labels
+=> add explanation
 => add d3js mood chart
 => RESET: on stop -> reset -> restart query 3d obj doesn't rebuild but startfrom last state
-=> RETYPE: address before submitting not refreshing results from google API
-
 
 BUGS 
 => restart app if crashes
